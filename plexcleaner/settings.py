@@ -92,4 +92,5 @@ RECENTLY_ADDED_MONTHS = int(os.getenv("RECENTLY_ADDED_MONTHS", "6"))
 
 SEERR_URL = os.getenv("SEERR_URL", "")
 SEERR_API_KEY = os.getenv("SEERR_API_KEY", "")
+SEERR_EMAIL = os.getenv("SEERR_EMAIL", "")
 SEERR_BLOCKLIST_ON_DELETE = os.getenv("SEERR_BLOCKLIST_ON_DELETE", "True").lower() in ("true", "1", "yes")

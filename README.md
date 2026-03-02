@@ -65,6 +65,7 @@ Copy `.env.example` to `.env` and fill in your values:
 | `RECENTLY_ADDED_MONTHS` | Protect items added/released within this many months | `6` |
 | `SEERR_URL` | Jellyseerr/Overseerr URL (leave empty to disable) | *(empty)* |
 | `SEERR_API_KEY` | Seerr API key | *(empty)* |
+| `SEERR_EMAIL` | Seerr account email (for local auth fallback) | *(empty)* |
 | `SEERR_BLOCKLIST_ON_DELETE` | Blocklist deleted items in Seerr to prevent re-requests | `True` |
 
 ## Manual sync

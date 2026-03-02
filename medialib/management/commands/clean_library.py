@@ -1,3 +1,4 @@
+import logging
 from fnmatch import fnmatch
 
 from django.core.management.base import BaseCommand
@@ -16,7 +17,15 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             "--filter-tag",
-            help="Only delete flagged items that have this tag",
+            help="Only delete flagged items matching these tags (comma-separated, supports wildcards)",
+        )
+        parser.add_argument(
+            "--limit", type=int, default=0,
+            help="Maximum number of items to delete (default: no limit)",
+        )
+        parser.add_argument(
+            "--no-seerr-errors", action="store_true",
+            help="Suppress Seerr integration warnings",
         )
 
     def _size_display(self, size_bytes):
@@ -29,14 +38,33 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         dry_run = options["dry_run"]
         filter_tag = options["filter_tag"]
+        limit = options["limit"]
+
+        if options["no_seerr_errors"]:
+            logging.getLogger("medialib.services.seerr").setLevel(logging.CRITICAL)
 
         movies = Movie.objects.filter(flagged=True, protected=False).exclude(collection__protected=True)
         series = Series.objects.filter(flagged=True, protected=False)
 
         if filter_tag:
-            matches = lambda tags: any(fnmatch(t, filter_tag) for t in tags)
+            patterns = [p.strip() for p in filter_tag.split(",") if p.strip()]
+            has_notag = "NOTAG" in patterns
+            glob_patterns = [p for p in patterns if p != "NOTAG"]
+            def matches(tags):
+                if has_notag and not tags:
+                    return True
+                return any(fnmatch(t, p) for t in tags for p in glob_patterns)
             movies = [m for m in movies if matches(m.tags_list)]
             series = [s for s in series if matches(s.tags_list)]
+
+        movies = list(movies)
+        series = list(series)
+        if limit > 0:
+            combined = movies + series
+            combined = combined[:limit]
+            movie_id_set = {m.id for m in movies}
+            movies = [x for x in combined if x.id in movie_id_set]
+            series = [x for x in combined if x.id not in movie_id_set]
 
         movie_ids = [m.id for m in movies]
         series_ids = [s.id for s in series]

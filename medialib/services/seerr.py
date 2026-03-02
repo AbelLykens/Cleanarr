@@ -22,11 +22,14 @@ def get_media(tmdb_id, media_type):
     """Look up media in Seerr by TMDB ID.
 
     media_type: "movie" or "tv"
-    Returns the mediaInfo dict (contains Seerr internal ID and requests), or None on 404.
+    Returns the mediaInfo dict (contains Seerr internal ID and requests), or None on 404/403.
     """
     endpoint = "movie" if media_type == "movie" else "tv"
     resp = requests.get(_url(f"/{endpoint}/{tmdb_id}"), headers=_headers(), timeout=30)
     if resp.status_code == 404:
+        return None
+    if resp.status_code == 403:
+        logger.warning("Seerr returned 403 for %s/%s — check API key permissions", endpoint, tmdb_id)
         return None
     resp.raise_for_status()
     return resp.json().get("mediaInfo")
@@ -61,6 +64,12 @@ def blocklist_add(tmdb_id, title):
         json={"tmdbId": tmdb_id, "title": title},
         timeout=30,
     )
+    if resp.status_code == 403:
+        logger.warning("Seerr returned 403 for blocklist add — check API key permissions")
+        return
+    if resp.status_code == 412:
+        logger.info("Already blocklisted in Seerr: %s (tmdb=%s)", title, tmdb_id)
+        return
     resp.raise_for_status()
     logger.info("Added to Seerr blocklist: %s (tmdb=%s)", title, tmdb_id)
 

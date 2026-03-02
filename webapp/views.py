@@ -80,7 +80,10 @@ def movies_list(request):
     ).order_by(*ordering)
     tag_filter = request.GET.get("tag", "").strip()
     if tag_filter:
-        movies = movies.filter(tags__icontains=tag_filter)
+        if tag_filter == "NOTAG":
+            movies = movies.filter(tags="")
+        else:
+            movies = movies.filter(tags__icontains=tag_filter)
     return render(request, "webapp/movies.html", {
         "movies": movies,
         "current_sort": sort,
@@ -116,7 +119,10 @@ def series_list(request):
     ).order_by(*ordering)
     tag_filter = request.GET.get("tag", "").strip()
     if tag_filter:
-        all_series = all_series.filter(tags__icontains=tag_filter)
+        if tag_filter == "NOTAG":
+            all_series = all_series.filter(tags="")
+        else:
+            all_series = all_series.filter(tags__icontains=tag_filter)
     return render(request, "webapp/series.html", {
         "series_list": all_series,
         "current_sort": sort,
