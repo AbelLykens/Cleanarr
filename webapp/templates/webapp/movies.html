@@ -28,7 +28,7 @@
         <td title="{{ movie.file_path }}">{{ movie.title }}</td>
         <td class="{% if movie.release_date and movie.release_date > RELEASE_CUTOFF %}text-green{% endif %}" title="{% if movie.release_date %}Released: {{ movie.release_date|date:'Y-m-d' }}{% endif %}">{{ movie.year|default_if_none:"" }}</td>
         <td class="{% if movie.imdb_rating == None %}text-green{% elif movie.imdb_rating < IMDB_RATING_THRESHOLD %}text-red{% else %}text-green{% endif %}">{% if movie.imdb_id %}<a href="https://www.imdb.com/title/{{ movie.imdb_id }}/" target="_blank" style="color: inherit;">{{ movie.imdb_rating|default_if_none:"N/A" }}</a>{% else %}{{ movie.imdb_rating|default_if_none:"N/A" }}{% endif %}</td>
-        <td class="{% if movie.popularity > 10 %}text-green{% else %}text-red{% endif %}">{{ movie.popularity|floatformat:0 }}</td>
+        <td class="{% if movie.popularity > POPULARITY_THRESHOLD %}text-green{% else %}text-red{% endif %}">{{ movie.popularity|floatformat:0 }}</td>
         <td class="{% if movie.watched %}text-green{% else %}text-red{% endif %}">{% if movie.watched %}Yes{% else %}No{% endif %}</td>
         <td class="{% if movie.added_at and movie.added_at < AGE_CUTOFF %}text-red{% elif movie.added_at %}text-green{% endif %}">{{ movie.added_at|date:"Y-m"|default_if_none:"" }}</td>
         <td class="{% if movie.size_bytes == 0 %}text-green{% else %}text-red{% endif %}">{{ movie.size_display }}</td>

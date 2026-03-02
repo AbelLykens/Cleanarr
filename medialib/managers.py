@@ -28,7 +28,7 @@ def _should_flag(watched, imdb_rating, added_at, size_bytes=0, popularity=0, rel
     threshold = settings.IMDB_RATING_THRESHOLD
     if imdb_rating >= threshold:
         return False
-    if popularity > 10:
+    if popularity > settings.POPULARITY_THRESHOLD:
         return False
     release_cutoff = date.today() - timedelta(days=settings.RECENTLY_ADDED_MONTHS * 30)
     if release_date and release_date > release_cutoff:
