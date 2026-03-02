@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.db.models import Count, Sum
+from django.db.models import Avg, BooleanField, Case, Count, OuterRef, Q, Subquery, Sum, Value, When
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
@@ -62,8 +62,18 @@ def movies_list(request):
     order_field = allowed_sorts.get(sort, "title")
     if direction == "desc":
         order_field = f"-{order_field}"
-    ordering = ("-flagged", order_field) if not explicit_sort else (order_field,)
-    movies = Movie.objects.select_related("collection").all().order_by(*ordering)
+    ordering = ("-effective_flagged", order_field) if not explicit_sort else (order_field,)
+    collection_counts = MovieCollection.objects.filter(
+        pk=OuterRef("collection_id"),
+    ).annotate(c=Count("movies")).values("c")
+    movies = Movie.objects.select_related("collection").annotate(
+        effective_flagged=Case(
+            When(Q(flagged=True, protected=False) & ~Q(collection__protected=True), then=Value(True)),
+            default=Value(False),
+            output_field=BooleanField(),
+        ),
+        collection_size=Subquery(collection_counts),
+    ).order_by(*ordering)
     tag_filter = request.GET.get("tag", "").strip()
     if tag_filter:
         movies = movies.filter(tags__icontains=tag_filter)
@@ -92,8 +102,14 @@ def series_list(request):
     order_field = allowed_sorts.get(sort, "title")
     if direction == "desc":
         order_field = f"-{order_field}"
-    ordering = ("-flagged", order_field) if not explicit_sort else (order_field,)
-    all_series = Series.objects.all().order_by(*ordering)
+    ordering = ("-effective_flagged", order_field) if not explicit_sort else (order_field,)
+    all_series = Series.objects.annotate(
+        effective_flagged=Case(
+            When(flagged=True, protected=False, then=Value(True)),
+            default=Value(False),
+            output_field=BooleanField(),
+        ),
+    ).order_by(*ordering)
     tag_filter = request.GET.get("tag", "").strip()
     if tag_filter:
         all_series = all_series.filter(tags__icontains=tag_filter)
@@ -173,15 +189,19 @@ def toggle_protected(request):
 def collections_list(request):
     collections = MovieCollection.objects.prefetch_related("movies").annotate(
         movie_count=Count("movies"),
-    ).filter(movie_count__gt=1)
+        avg_rating=Avg("movies__imdb_rating"),
+    ).filter(movie_count__gt=1).order_by("-avg_rating")
     collection_data = []
     for c in collections:
         movies = c.movies.all()
         total_size = sum(m.size_bytes for m in movies)
+        has_flagged = not c.protected and any(m.flagged and not m.protected for m in movies)
         collection_data.append({
             "collection": c,
             "movie_count": c.movie_count,
+            "avg_rating": round(c.avg_rating, 1) if c.avg_rating is not None else None,
             "total_size_display": _size_display(total_size),
+            "has_flagged": has_flagged,
             "movies": movies,
         })
     return render(request, "webapp/collections.html", {

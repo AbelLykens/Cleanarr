@@ -33,7 +33,7 @@
       {% for s in series_list %}
       <tr{% if s.flagged and not s.protected %} class="flagged"{% endif %}>
         <td><input type="checkbox" name="series_ids" value="{{ s.id }}" {% if s.flagged and not s.protected %}checked{% endif %}></td>
-        <td title="{{ s.file_path }}">{{ s.title }}{% if s.protected %} <span class="text-green" title="Protected from deletion">&#128274;</span>{% endif %}</td>
+        <td title="{{ s.file_path }}">{% if s.protected %}<span class="lock-icon text-green" title="Protected from deletion">&#128274;</span>{% else %}<span class="lock-spacer"></span>{% endif %}{{ s.title }}</td>
         <td class="{% if s.release_date and s.release_date > RELEASE_CUTOFF %}text-green{% endif %}" title="{% if s.release_date %}Released: {{ s.release_date|date:'Y-m-d' }}{% endif %}">{{ s.year|default_if_none:"" }}</td>
         <td class="{% if s.imdb_rating == None %}text-green{% elif s.imdb_rating < IMDB_RATING_THRESHOLD %}text-red{% else %}text-green{% endif %}">{% if s.imdb_id %}<a href="https://www.imdb.com/title/{{ s.imdb_id }}/" target="_blank" style="color: inherit;">{{ s.imdb_rating|default_if_none:"N/A" }}</a>{% else %}{{ s.imdb_rating|default_if_none:"N/A" }}{% endif %}</td>
         <td class="{% if s.any_episode_watched %}text-green{% else %}text-red{% endif %}">{% if s.any_episode_watched %}Yes{% else %}No{% endif %}</td>

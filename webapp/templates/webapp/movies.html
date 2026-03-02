@@ -34,7 +34,7 @@
       {% for movie in movies %}
       <tr{% if movie.flagged and not movie.is_protected %} class="flagged"{% endif %}>
         <td><input type="checkbox" name="movie_ids" value="{{ movie.id }}" {% if movie.flagged and not movie.is_protected %}checked{% endif %}></td>
-        <td title="{{ movie.file_path }}">{{ movie.title }}{% if movie.collection %}<br><small style="color: #a8b2d1;">{{ movie.collection.name }}</small>{% endif %}{% if movie.is_protected %} <span class="text-green" title="Protected from deletion{% if movie.collection.protected %} (via collection){% endif %}">&#128274;</span>{% endif %}</td>
+        <td title="{{ movie.file_path }}">{% if movie.is_protected %}<span class="lock-icon text-green" title="Protected from deletion{% if movie.collection.protected %} (via collection){% endif %}">&#128274;</span>{% else %}<span class="lock-spacer"></span>{% endif %}{{ movie.title }}{% if movie.collection and movie.collection_size > 1 %}<br><small style="color: #a8b2d1;"><span class="lock-spacer"></span>{{ movie.collection.name }}</small>{% endif %}</td>
         <td class="{% if movie.release_date and movie.release_date > RELEASE_CUTOFF %}text-green{% endif %}" title="{% if movie.release_date %}Released: {{ movie.release_date|date:'Y-m-d' }}{% endif %}">{{ movie.year|default_if_none:"" }}</td>
         <td class="{% if movie.imdb_rating == None %}text-green{% elif movie.imdb_rating < IMDB_RATING_THRESHOLD %}text-red{% else %}text-green{% endif %}">{% if movie.imdb_id %}<a href="https://www.imdb.com/title/{{ movie.imdb_id }}/" target="_blank" style="color: inherit;">{{ movie.imdb_rating|default_if_none:"N/A" }}</a>{% else %}{{ movie.imdb_rating|default_if_none:"N/A" }}{% endif %}</td>
         <td class="{% if movie.popularity > POPULARITY_THRESHOLD %}text-green{% else %}text-red{% endif %}">{{ movie.popularity|floatformat:0 }}</td>
@@ -42,7 +42,7 @@
         <td class="{% if movie.added_at and movie.added_at < AGE_CUTOFF %}text-red{% elif movie.added_at %}text-green{% endif %}">{{ movie.added_at|date:"Y-m"|default_if_none:"" }}</td>
         <td class="{% if movie.size_bytes == 0 %}text-green{% else %}text-red{% endif %}">{{ movie.size_display }}</td>
         <td><small>{% for tag in movie.tags_list %}{{ tag }}{% if not forloop.last %}, {% endif %}{% endfor %}</small></td>
-        <td>{% if movie.collection.protected %}<span class="text-green" title="Protected via collection" style="font-size:0.8rem;">&#128274;</span>{% else %}<button type="button" onclick="toggleProtect('movie_id','{{ movie.id }}')" style="background:none;border:none;cursor:pointer;font-size:0.8rem;padding:0;" title="{% if movie.protected %}Unprotect{% else %}Protect{% endif %}">{% if movie.protected %}<span class="text-green">&#128274;</span>{% else %}<span class="text-muted">&#128275;</span>{% endif %}</button>{% endif %}</td>
+        <td><button type="button" onclick="toggleProtect('movie_id','{{ movie.id }}')" style="background:none;border:none;cursor:pointer;font-size:0.8rem;padding:0;" title="{% if movie.is_protected %}Unprotect{% else %}Protect{% endif %}">{% if movie.is_protected %}<span class="text-green">&#128274;</span>{% else %}<span class="text-muted">&#128275;</span>{% endif %}</button></td>
       </tr>
       {% endfor %}
     </tbody>
