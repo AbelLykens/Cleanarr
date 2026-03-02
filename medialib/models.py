@@ -4,6 +4,7 @@ from django.db import models
 class Movie(models.Model):
     title = models.CharField(max_length=500)
     year = models.IntegerField(null=True, blank=True)
+    release_date = models.DateField(null=True, blank=True)
     plex_rating_key = models.CharField(max_length=100, null=True, blank=True)
     radarr_id = models.IntegerField(unique=True)
     imdb_id = models.CharField(max_length=20, null=True, blank=True)
@@ -35,6 +36,7 @@ class Movie(models.Model):
 class Series(models.Model):
     title = models.CharField(max_length=500)
     year = models.IntegerField(null=True, blank=True)
+    release_date = models.DateField(null=True, blank=True)
     plex_rating_key = models.CharField(max_length=100, null=True, blank=True)
     sonarr_id = models.IntegerField(unique=True)
     imdb_id = models.CharField(max_length=20, null=True, blank=True)

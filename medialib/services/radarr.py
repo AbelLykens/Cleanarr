@@ -1,3 +1,5 @@
+from datetime import date
+
 import requests
 from django.conf import settings
 
@@ -16,6 +18,16 @@ def get_all_tags():
     return {t["id"]: t["label"] for t in resp.json()}
 
 
+def _parse_date(iso_str):
+    """Parse an ISO date string (e.g. '2025-09-15T00:00:00Z') to a date, or None."""
+    if not iso_str:
+        return None
+    try:
+        return date.fromisoformat(iso_str[:10])
+    except (ValueError, TypeError):
+        return None
+
+
 def get_all_movies():
     tag_map = get_all_tags()
     resp = requests.get(_url("/movie"), headers=_headers(), timeout=30)
@@ -25,6 +37,11 @@ def get_all_movies():
         imdb_id = m.get("imdbId", "")
         tag_ids = m.get("tags", [])
         tags = [tag_map[tid] for tid in tag_ids if tid in tag_map]
+        release_date = (
+            _parse_date(m.get("digitalRelease"))
+            or _parse_date(m.get("physicalRelease"))
+            or _parse_date(m.get("inCinemas"))
+        )
         results[m["id"]] = {
             "radarr_id": m["id"],
             "imdb_id": imdb_id,
@@ -32,6 +49,7 @@ def get_all_movies():
             "title": m.get("title", ""),
             "year": m.get("year"),
             "popularity": m.get("popularity", 0) or 0,
+            "release_date": release_date,
             "path": m.get("path", ""),
             "tags": ", ".join(sorted(tags)),
         }

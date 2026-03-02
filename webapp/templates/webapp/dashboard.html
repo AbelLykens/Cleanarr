@@ -1,5 +1,5 @@
 {% extends "webapp/base.html" %}
-{% block title %}Dashboard - ServarOpruimarr{% endblock %}
+{% block title %}Dashboard - Opruimarr{% endblock %}
 {% block content %}
 <h1>Dashboard</h1>
 <div class="cards">
@@ -40,6 +40,7 @@
     <li><span class="text-red">IMDB rating &lt; {{ IMDB_RATING_THRESHOLD }}</span> &mdash; below the configured threshold</li>
     <li><span class="text-red">Popularity &le; 10</span> &mdash; not trending (movies only)</li>
     <li><span class="text-red">Added more than {{ RECENTLY_ADDED_MONTHS }} months ago</span> &mdash; not recently added</li>
+    <li><span class="text-red">Released more than {{ RECENTLY_ADDED_MONTHS }} months ago</span> &mdash; not a recent release</li>
   </ul>
   <p style="color: #a8b2d1; font-size: 0.85rem; margin: 0.8rem 0 0;">
     Items with <span class="text-green">unknown ratings (N/A)</span> are never auto-flagged.

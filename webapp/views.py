@@ -44,6 +44,7 @@ def dashboard(request):
 
 
 def movies_list(request):
+    explicit_sort = "sort" in request.GET
     sort = request.GET.get("sort", "title")
     direction = request.GET.get("dir", "asc")
     allowed_sorts = {
@@ -60,7 +61,8 @@ def movies_list(request):
     order_field = allowed_sorts.get(sort, "title")
     if direction == "desc":
         order_field = f"-{order_field}"
-    movies = Movie.objects.all().order_by("-flagged", order_field)
+    ordering = ("-flagged", order_field) if not explicit_sort else (order_field,)
+    movies = Movie.objects.all().order_by(*ordering)
     return render(request, "webapp/movies.html", {
         "movies": movies,
         "current_sort": sort,
@@ -69,6 +71,7 @@ def movies_list(request):
 
 
 def series_list(request):
+    explicit_sort = "sort" in request.GET
     sort = request.GET.get("sort", "title")
     direction = request.GET.get("dir", "asc")
     allowed_sorts = {
@@ -84,7 +87,8 @@ def series_list(request):
     order_field = allowed_sorts.get(sort, "title")
     if direction == "desc":
         order_field = f"-{order_field}"
-    all_series = Series.objects.all().order_by("-flagged", order_field)
+    ordering = ("-flagged", order_field) if not explicit_sort else (order_field,)
+    all_series = Series.objects.all().order_by(*ordering)
     return render(request, "webapp/series.html", {
         "series_list": all_series,
         "current_sort": sort,

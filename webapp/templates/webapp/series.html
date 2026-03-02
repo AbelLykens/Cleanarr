@@ -1,5 +1,5 @@
 {% extends "webapp/base.html" %}
-{% block title %}Series - ServarOpruimarr{% endblock %}
+{% block title %}Series - Opruimarr{% endblock %}
 {% block content %}
 <h1>Series</h1>
 
@@ -25,7 +25,7 @@
       <tr{% if s.flagged %} class="flagged"{% endif %}>
         <td><input type="checkbox" name="series_ids" value="{{ s.id }}" {% if s.flagged %}checked{% endif %}></td>
         <td title="{{ s.file_path }}">{{ s.title }}</td>
-        <td>{{ s.year|default_if_none:"" }}</td>
+        <td class="{% if s.release_date and s.release_date > RELEASE_CUTOFF %}text-green{% endif %}" title="{% if s.release_date %}Released: {{ s.release_date|date:'Y-m-d' }}{% endif %}">{{ s.year|default_if_none:"" }}</td>
         <td class="{% if s.imdb_rating == None %}text-green{% elif s.imdb_rating < IMDB_RATING_THRESHOLD %}text-red{% else %}text-green{% endif %}">{% if s.imdb_id %}<a href="https://www.imdb.com/title/{{ s.imdb_id }}/" target="_blank" style="color: inherit;">{{ s.imdb_rating|default_if_none:"N/A" }}</a>{% else %}{{ s.imdb_rating|default_if_none:"N/A" }}{% endif %}</td>
         <td class="{% if s.any_episode_watched %}text-green{% else %}text-red{% endif %}">{% if s.any_episode_watched %}Yes{% else %}No{% endif %}</td>
         <td class="{% if s.added_at and s.added_at < AGE_CUTOFF %}text-red{% elif s.added_at %}text-green{% endif %}">{{ s.added_at|date:"Y-m"|default_if_none:"" }}</td>

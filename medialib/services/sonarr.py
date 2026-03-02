@@ -1,3 +1,5 @@
+from datetime import date
+
 import requests
 from django.conf import settings
 
@@ -16,6 +18,16 @@ def get_all_tags():
     return {t["id"]: t["label"] for t in resp.json()}
 
 
+def _parse_date(iso_str):
+    """Parse an ISO date string (e.g. '2025-09-15T00:00:00Z') to a date, or None."""
+    if not iso_str:
+        return None
+    try:
+        return date.fromisoformat(iso_str[:10])
+    except (ValueError, TypeError):
+        return None
+
+
 def get_all_series():
     tag_map = get_all_tags()
     resp = requests.get(_url("/series"), headers=_headers(), timeout=30)
@@ -31,6 +43,7 @@ def get_all_series():
             "imdb_rating": s.get("ratings", {}).get("value"),
             "title": s.get("title", ""),
             "year": s.get("year"),
+            "release_date": _parse_date(s.get("firstAired")),
             "path": s.get("path", ""),
             "tags": ", ".join(sorted(tags)),
         }

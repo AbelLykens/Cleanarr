@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta, timezone as dt_tz
+from datetime import date, datetime, timedelta, timezone as dt_tz
 
 from django.conf import settings
 from django.utils import timezone
@@ -17,7 +17,7 @@ def _make_aware(dt):
     return dt
 
 
-def _should_flag(watched, imdb_rating, added_at, size_bytes=0, popularity=0):
+def _should_flag(watched, imdb_rating, added_at, size_bytes=0, popularity=0, release_date=None):
     """Return True if item meets all auto-flag criteria."""
     if size_bytes == 0:
         return False
@@ -29,6 +29,9 @@ def _should_flag(watched, imdb_rating, added_at, size_bytes=0, popularity=0):
     if imdb_rating >= threshold:
         return False
     if popularity > 10:
+        return False
+    release_cutoff = date.today() - timedelta(days=settings.RECENTLY_ADDED_MONTHS * 30)
+    if release_date and release_date > release_cutoff:
         return False
     if added_at is None:
         return True
@@ -96,13 +99,15 @@ def sync_library(progress=None):
         imdb_rating = radarr_info.get("imdb_rating")
         imdb_id = radarr_info.get("imdb_id")
         popularity = radarr_info.get("popularity", 0)
-        flagged = _should_flag(watched, imdb_rating, added_at, size_bytes, popularity)
+        release_date = radarr_info.get("release_date")
+        flagged = _should_flag(watched, imdb_rating, added_at, size_bytes, popularity, release_date)
 
         Movie.objects.update_or_create(
             radarr_id=rid,
             defaults={
                 "title": radarr_info.get("title", ""),
                 "year": radarr_info.get("year"),
+                "release_date": release_date,
                 "plex_rating_key": rating_key,
                 "imdb_id": imdb_id,
                 "imdb_rating": imdb_rating,
@@ -172,13 +177,15 @@ def sync_library(progress=None):
 
         imdb_rating = sonarr_info.get("imdb_rating")
         imdb_id = sonarr_info.get("imdb_id")
-        flagged = _should_flag(watched, imdb_rating, added_at, size_bytes)
+        release_date = sonarr_info.get("release_date")
+        flagged = _should_flag(watched, imdb_rating, added_at, size_bytes, release_date=release_date)
 
         Series.objects.update_or_create(
             sonarr_id=sid,
             defaults={
                 "title": sonarr_info.get("title", ""),
                 "year": sonarr_info.get("year"),
+                "release_date": release_date,
                 "plex_rating_key": rating_key,
                 "imdb_id": imdb_id,
                 "imdb_rating": imdb_rating,
