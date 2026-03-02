@@ -1,3 +1,5 @@
+from fnmatch import fnmatch
+
 from django.core.management.base import BaseCommand
 
 from medialib.managers import delete_movies, delete_series
@@ -32,8 +34,9 @@ class Command(BaseCommand):
         series = Series.objects.filter(flagged=True)
 
         if filter_tag:
-            movies = [m for m in movies if filter_tag in m.tags_list]
-            series = [s for s in series if filter_tag in s.tags_list]
+            matches = lambda tags: any(fnmatch(t, filter_tag) for t in tags)
+            movies = [m for m in movies if matches(m.tags_list)]
+            series = [s for s in series if matches(s.tags_list)]
 
         movie_ids = [m.id for m in movies]
         series_ids = [s.id for s in series]
