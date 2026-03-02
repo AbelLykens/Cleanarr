@@ -30,7 +30,7 @@ class Command(BaseCommand):
         dry_run = options["dry_run"]
         filter_tag = options["filter_tag"]
 
-        movies = Movie.objects.filter(flagged=True, protected=False)
+        movies = Movie.objects.filter(flagged=True, protected=False).exclude(collection__protected=True)
         series = Series.objects.filter(flagged=True, protected=False)
 
         if filter_tag:

@@ -1,0 +1,49 @@
+{% extends "webapp/base.html" %}
+{% block title %}Collections - Opruimarr{% endblock %}
+{% block content %}
+<h1>Collections</h1>
+
+{% if collection_data %}
+<table>
+  <thead>
+    <tr>
+      <th>Collection</th>
+      <th>Movies</th>
+      <th>Total Size</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in collection_data %}
+    <tr>
+      <td>
+        <details>
+          <summary style="cursor: pointer;">{{ item.collection.name }}{% if item.collection.protected %} <span class="text-green" title="Protected">&#128274;</span>{% endif %}</summary>
+          <ul style="margin: 0.3rem 0 0; padding-left: 1.5rem; font-size: 0.85rem; color: #a8b2d1;">
+            {% for movie in item.movies %}
+            <li>{{ movie.title }} ({{ movie.year|default_if_none:"" }}) &mdash; {{ movie.size_display }} GB{% if movie.protected %} <span class="text-green">&#128274;</span>{% endif %}</li>
+            {% endfor %}
+          </ul>
+        </details>
+      </td>
+      <td>{{ item.movie_count }}</td>
+      <td>{{ item.total_size_display }}</td>
+      <td><button type="button" onclick="toggleCollectionProtect('{{ item.collection.id }}')" style="background:none;border:none;cursor:pointer;font-size:0.8rem;padding:0;" title="{% if item.collection.protected %}Unprotect{% else %}Protect{% endif %}">{% if item.collection.protected %}<span class="text-green">&#128274;</span>{% else %}<span class="text-muted">&#128275;</span>{% endif %}</button></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No collections found. Collections are populated during library sync.</p>
+{% endif %}
+
+<script>
+function toggleCollectionProtect(id) {
+  var form = new FormData();
+  form.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+  form.append('collection_id', id);
+  form.append('next', window.location.href);
+  fetch('{% url "toggle_collection_protected" %}', {method: 'POST', body: form}).then(function() { location.reload(); });
+}
+</script>
+{% endblock %}

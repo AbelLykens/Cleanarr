@@ -20,8 +20,8 @@
   </thead>
   <tbody>
     {% for movie in movies %}
-    <tr{% if movie.protected %} style="opacity: 0.5;"{% endif %}>
-      <td>{{ movie.title }}{% if movie.protected %} <span class="text-green">&#128274;</span>{% endif %}</td>
+    <tr{% if movie.is_protected %} style="opacity: 0.5;"{% endif %}>
+      <td>{{ movie.title }}{% if movie.is_protected %} <span class="text-green">&#128274;</span>{% if movie.collection.protected %} <small style="color: #a8b2d1;">(via {{ movie.collection.name }})</small>{% endif %}{% endif %}</td>
       <td>{{ movie.year|default_if_none:"" }}</td>
       <td>{{ movie.size_display }}</td>
     </tr>
@@ -69,7 +69,7 @@
 
 <script>
 {% if has_protected %}
-var protectedMovieIds = [{% for movie in movies %}{% if movie.protected %}{{ movie.id }},{% endif %}{% endfor %}];
+var protectedMovieIds = [{% for movie in movies %}{% if movie.is_protected %}{{ movie.id }},{% endif %}{% endfor %}];
 var protectedSeriesIds = [{% for s in series %}{% if s.protected %}{{ s.id }},{% endif %}{% endfor %}];
 
 document.getElementById('remove-protected').addEventListener('click', function() {

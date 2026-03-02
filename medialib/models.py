@@ -1,6 +1,18 @@
 from django.db import models
 
 
+class MovieCollection(models.Model):
+    tmdb_id = models.IntegerField(unique=True)
+    name = models.CharField(max_length=500)
+    protected = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class Movie(models.Model):
     title = models.CharField(max_length=500)
     year = models.IntegerField(null=True, blank=True)
@@ -16,6 +28,10 @@ class Movie(models.Model):
     size_bytes = models.BigIntegerField(default=0)
     tags = models.TextField(blank=True, default="")
     flagged = models.BooleanField(default=False)
+    collection = models.ForeignKey(
+        "MovieCollection", null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="movies",
+    )
     protected = models.BooleanField(default=False)
     last_synced = models.DateTimeField(auto_now=True)
 
@@ -24,6 +40,10 @@ class Movie(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.year})"
+
+    @property
+    def is_protected(self):
+        return self.protected or (self.collection is not None and self.collection.protected)
 
     @property
     def size_display(self):

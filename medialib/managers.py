@@ -4,7 +4,7 @@ from datetime import date, datetime, timedelta, timezone as dt_tz
 from django.conf import settings
 from django.utils import timezone
 
-from .models import DeletionLog, Movie, Series
+from .models import DeletionLog, Movie, MovieCollection, Series
 from .services import plex, radarr, sonarr, tautulli
 
 logger = logging.getLogger(__name__)
@@ -102,6 +102,15 @@ def sync_library(progress=None):
         release_date = radarr_info.get("release_date")
         flagged = _should_flag(watched, imdb_rating, added_at, size_bytes, popularity, release_date)
 
+        collection_obj = None
+        coll_tmdb_id = radarr_info.get("collection_tmdb_id")
+        coll_name = radarr_info.get("collection_name", "")
+        if coll_tmdb_id:
+            collection_obj, _ = MovieCollection.objects.update_or_create(
+                tmdb_id=coll_tmdb_id,
+                defaults={"name": coll_name},
+            )
+
         Movie.objects.update_or_create(
             radarr_id=rid,
             defaults={
@@ -118,6 +127,7 @@ def sync_library(progress=None):
                 "file_path": file_path,
                 "size_bytes": size_bytes,
                 "flagged": flagged,
+                "collection": collection_obj,
             },
         )
         stats["movies_synced"] += 1
@@ -213,9 +223,9 @@ def sync_library(progress=None):
 def delete_movies(movie_ids):
     """Delete movies via Radarr API and remove from local DB."""
     results = {"deleted": 0, "errors": [], "protected": 0}
-    movies = Movie.objects.filter(id__in=movie_ids)
+    movies = Movie.objects.select_related("collection").filter(id__in=movie_ids)
     for movie in movies:
-        if movie.protected:
+        if movie.is_protected:
             results["protected"] += 1
             continue
         try:

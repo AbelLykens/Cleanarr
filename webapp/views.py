@@ -1,19 +1,20 @@
 from django.contrib import messages
-from django.db.models import Sum
+from django.db.models import Count, Sum
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
 from medialib.managers import delete_movies, delete_series
-from medialib.models import DeletionLog, Movie, Series
+from medialib.models import DeletionLog, Movie, MovieCollection, Series
 
 
 def dashboard(request):
     movie_count = Movie.objects.count()
     series_count = Series.objects.count()
-    flagged_movies = Movie.objects.filter(flagged=True, protected=False).count()
+    flagged_movies_qs = Movie.objects.filter(flagged=True, protected=False).exclude(collection__protected=True)
+    flagged_movies = flagged_movies_qs.count()
     flagged_series = Series.objects.filter(flagged=True, protected=False).count()
     reclaimable = (
-        (Movie.objects.filter(flagged=True, protected=False).aggregate(s=Sum("size_bytes"))["s"] or 0)
+        (flagged_movies_qs.aggregate(s=Sum("size_bytes"))["s"] or 0)
         + (Series.objects.filter(flagged=True, protected=False).aggregate(s=Sum("size_bytes"))["s"] or 0)
     )
     total_reclaimed = DeletionLog.objects.aggregate(s=Sum("size_bytes"))["s"] or 0
@@ -62,7 +63,7 @@ def movies_list(request):
     if direction == "desc":
         order_field = f"-{order_field}"
     ordering = ("-flagged", order_field) if not explicit_sort else (order_field,)
-    movies = Movie.objects.all().order_by(*ordering)
+    movies = Movie.objects.select_related("collection").all().order_by(*ordering)
     tag_filter = request.GET.get("tag", "").strip()
     if tag_filter:
         movies = movies.filter(tags__icontains=tag_filter)
@@ -108,10 +109,10 @@ def series_list(request):
 def confirm_delete(request):
     movie_ids = request.POST.getlist("movie_ids")
     series_ids = request.POST.getlist("series_ids")
-    selected_movies = list(Movie.objects.filter(id__in=movie_ids))
+    selected_movies = list(Movie.objects.select_related("collection").filter(id__in=movie_ids))
     selected_series = list(Series.objects.filter(id__in=series_ids))
-    has_protected = any(m.protected for m in selected_movies) or any(s.protected for s in selected_series)
-    total_size = sum(m.size_bytes for m in selected_movies if not m.protected) + sum(s.size_bytes for s in selected_series if not s.protected)
+    has_protected = any(m.is_protected for m in selected_movies) or any(s.protected for s in selected_series)
+    total_size = sum(m.size_bytes for m in selected_movies if not m.is_protected) + sum(s.size_bytes for s in selected_series if not s.protected)
     return render(request, "webapp/confirm_delete.html", {
         "movies": selected_movies,
         "series": selected_series,
@@ -166,6 +167,37 @@ def toggle_protected(request):
         if s:
             s.protected = not s.protected
             s.save(update_fields=["protected"])
+    return redirect(redirect_url)
+
+
+def collections_list(request):
+    collections = MovieCollection.objects.prefetch_related("movies").annotate(
+        movie_count=Count("movies"),
+    ).filter(movie_count__gt=1)
+    collection_data = []
+    for c in collections:
+        movies = c.movies.all()
+        total_size = sum(m.size_bytes for m in movies)
+        collection_data.append({
+            "collection": c,
+            "movie_count": c.movie_count,
+            "total_size_display": _size_display(total_size),
+            "movies": movies,
+        })
+    return render(request, "webapp/collections.html", {
+        "collection_data": collection_data,
+    })
+
+
+@require_POST
+def toggle_collection_protected(request):
+    collection_id = request.POST.get("collection_id")
+    redirect_url = request.POST.get("next", "/collections/")
+    if collection_id:
+        c = MovieCollection.objects.filter(id=collection_id).first()
+        if c:
+            c.protected = not c.protected
+            c.save(update_fields=["protected"])
     return redirect(redirect_url)
 
 

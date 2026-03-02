@@ -22,8 +22,9 @@
     th { background: #16213e; position: sticky; top: 0; }
     th a { color: #a8b2d1; text-decoration: none; }
     th a:hover { color: #e94560; }
-    tr:hover { background: #1f1f3a; }
+    tbody tr:hover { background: #252547; box-shadow: inset 3px 0 0 #e94560; }
     .flagged { background: #3d1f1f !important; }
+    .flagged:hover { background: #4a2525 !important; box-shadow: inset 3px 0 0 #e94560; }
     .btn { display: inline-block; padding: 0.5rem 1.2rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; text-decoration: none; color: #fff; }
     .btn-primary { background: #e94560; }
     .btn-primary:hover { background: #c73e54; }
@@ -51,6 +52,7 @@
     <a href="{% url 'dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}class="active"{% endif %}>Dashboard</a>
     <a href="{% url 'movies' %}" {% if request.resolver_match.url_name == 'movies' %}class="active"{% endif %}>Movies</a>
     <a href="{% url 'series' %}" {% if request.resolver_match.url_name == 'series' %}class="active"{% endif %}>Series</a>
+    <a href="{% url 'collections' %}" {% if request.resolver_match.url_name == 'collections' %}class="active"{% endif %}>Collections</a>
   </nav>
   <div class="container">
     {% if messages %}

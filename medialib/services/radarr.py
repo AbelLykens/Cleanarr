@@ -42,6 +42,7 @@ def get_all_movies():
             or _parse_date(m.get("physicalRelease"))
             or _parse_date(m.get("inCinemas"))
         )
+        collection = m.get("collection") or {}
         results[m["id"]] = {
             "radarr_id": m["id"],
             "imdb_id": imdb_id,
@@ -52,6 +53,8 @@ def get_all_movies():
             "release_date": release_date,
             "path": m.get("path", ""),
             "tags": ", ".join(sorted(tags)),
+            "collection_tmdb_id": collection.get("tmdbId"),
+            "collection_name": collection.get("name") or collection.get("title", ""),
         }
     return results
 
