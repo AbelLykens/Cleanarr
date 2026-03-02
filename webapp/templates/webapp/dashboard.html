@@ -48,8 +48,8 @@
 </div>
 
 {% if recent_deletions %}
-<div style="margin-top: 2rem;">
-  <h3 style="color: #a8b2d1; font-size: 1rem; margin-bottom: 0.5rem;">Deletion history ({{ total_deleted_count }} total)</h3>
+<details style="margin-top: 2rem;">
+  <summary style="cursor: pointer; color: #a8b2d1; font-size: 1rem; font-weight: 700;">Deletion history ({{ total_deleted_count }} total)</summary>
   <table>
     <thead>
       <tr>
@@ -72,7 +72,7 @@
       {% endfor %}
     </tbody>
   </table>
-</div>
+</details>
 {% endif %}
 
 <div style="margin-top: 1rem; color: #a8b2d1; font-size: 0.85rem;">
