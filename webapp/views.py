@@ -4,7 +4,7 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
 from medialib.managers import delete_movies, delete_series
-from medialib.models import Movie, Series
+from medialib.models import DeletionLog, Movie, Series
 
 
 def dashboard(request):
@@ -16,6 +16,10 @@ def dashboard(request):
         (Movie.objects.filter(flagged=True).aggregate(s=Sum("size_bytes"))["s"] or 0)
         + (Series.objects.filter(flagged=True).aggregate(s=Sum("size_bytes"))["s"] or 0)
     )
+    total_reclaimed = DeletionLog.objects.aggregate(s=Sum("size_bytes"))["s"] or 0
+    total_deleted_count = DeletionLog.objects.count()
+    recent_deletions = DeletionLog.objects.all()[:20]
+
     last_synced = None
     latest_movie = Movie.objects.order_by("-last_synced").first()
     latest_series = Series.objects.order_by("-last_synced").first()
@@ -31,6 +35,9 @@ def dashboard(request):
         "flagged_series": flagged_series,
         "reclaimable_bytes": reclaimable,
         "reclaimable_display": _size_display(reclaimable),
+        "total_reclaimed_display": _size_display(total_reclaimed),
+        "total_deleted_count": total_deleted_count,
+        "recent_deletions": recent_deletions,
         "last_synced": last_synced,
     })
 

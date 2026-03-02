@@ -63,3 +63,25 @@ class Series(models.Model):
     @property
     def tags_list(self):
         return [t.strip() for t in self.tags.split(",") if t.strip()] if self.tags else []
+
+
+class DeletionLog(models.Model):
+    MOVIE = "movie"
+    SERIES = "series"
+    MEDIA_TYPES = [(MOVIE, "Movie"), (SERIES, "Series")]
+
+    title = models.CharField(max_length=500)
+    year = models.IntegerField(null=True, blank=True)
+    media_type = models.CharField(max_length=10, choices=MEDIA_TYPES)
+    size_bytes = models.BigIntegerField(default=0)
+    deleted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-deleted_at"]
+
+    def __str__(self):
+        return f"{self.title} ({self.year})"
+
+    @property
+    def size_display(self):
+        return f"{round(self.size_bytes / 1_073_741_824)}"

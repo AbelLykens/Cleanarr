@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone as dt_tz
 from django.conf import settings
 from django.utils import timezone
 
-from .models import Movie, Series
+from .models import DeletionLog, Movie, Series
 from .services import plex, radarr, sonarr, tautulli
 
 logger = logging.getLogger(__name__)
@@ -210,6 +210,12 @@ def delete_movies(movie_ids):
     for movie in movies:
         try:
             radarr.delete_movie(movie.radarr_id, delete_files=True)
+            DeletionLog.objects.create(
+                title=movie.title,
+                year=movie.year,
+                media_type=DeletionLog.MOVIE,
+                size_bytes=movie.size_bytes,
+            )
             movie.delete()
             results["deleted"] += 1
         except Exception as e:
@@ -224,6 +230,12 @@ def delete_series(series_ids):
     for s in all_series:
         try:
             sonarr.delete_series(s.sonarr_id, delete_files=True)
+            DeletionLog.objects.create(
+                title=s.title,
+                year=s.year,
+                media_type=DeletionLog.SERIES,
+                size_bytes=s.size_bytes,
+            )
             s.delete()
             results["deleted"] += 1
         except Exception as e:

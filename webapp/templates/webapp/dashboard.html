@@ -23,6 +23,10 @@
     <h3>Reclaimable Space</h3>
     <div class="value">{{ reclaimable_display }}</div>
   </div>
+  <div class="card">
+    <h3>Total Reclaimed</h3>
+    <div class="value">{{ total_reclaimed_display }}</div>
+  </div>
 </div>
 
 <div style="margin-top: 2rem; background: #16213e; padding: 1.2rem; border-radius: 8px;">
@@ -42,6 +46,34 @@
     If any criterion is <span class="text-green">green</span> in the table, that factor alone prevents auto-flagging.
   </p>
 </div>
+
+{% if recent_deletions %}
+<div style="margin-top: 2rem;">
+  <h3 style="color: #a8b2d1; font-size: 1rem; margin-bottom: 0.5rem;">Deletion history ({{ total_deleted_count }} total)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Year</th>
+        <th>Type</th>
+        <th>Size (GB)</th>
+        <th>Deleted</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in recent_deletions %}
+      <tr>
+        <td>{{ d.title }}</td>
+        <td>{{ d.year|default_if_none:"" }}</td>
+        <td>{{ d.get_media_type_display }}</td>
+        <td>{{ d.size_display }}</td>
+        <td>{{ d.deleted_at|date:"Y-m-d H:i" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
 
 <div style="margin-top: 1rem; color: #a8b2d1; font-size: 0.85rem;">
   {% if last_synced %}
