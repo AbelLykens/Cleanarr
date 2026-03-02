@@ -43,10 +43,12 @@ def movies_list(request):
         "title": "title",
         "year": "year",
         "imdb_rating": "imdb_rating",
+        "popularity": "popularity",
         "added_at": "added_at",
         "size_bytes": "size_bytes",
         "watched": "watched",
         "flagged": "flagged",
+        "tags": "tags",
     }
     order_field = allowed_sorts.get(sort, "title")
     if direction == "desc":
@@ -70,6 +72,7 @@ def series_list(request):
         "size_bytes": "size_bytes",
         "any_episode_watched": "any_episode_watched",
         "flagged": "flagged",
+        "tags": "tags",
     }
     order_field = allowed_sorts.get(sort, "title")
     if direction == "desc":

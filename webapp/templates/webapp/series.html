@@ -4,6 +4,7 @@
 <h1>Series</h1>
 
 {% if series_list %}
+<p style="font-size: 0.85rem; color: #a8b2d1; margin-bottom: 0.5rem;"><span style="display: inline-block; width: 1em; height: 1em; background: #3d1f1f; border: 1px solid #5c2a2a; vertical-align: middle; margin-right: 0.3rem;"></span> Red background = flagged for deletion</p>
 <form method="post" action="{% url 'confirm_delete' %}">
   {% csrf_token %}
   <table>
@@ -15,21 +16,21 @@
         <th><a href="?sort=imdb_rating&dir={% if current_sort == 'imdb_rating' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">IMDB Rating{% if current_sort == "imdb_rating" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
         <th><a href="?sort=any_episode_watched&dir={% if current_sort == 'any_episode_watched' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Ever Watched{% if current_sort == "any_episode_watched" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
         <th><a href="?sort=added_at&dir={% if current_sort == 'added_at' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Date Added{% if current_sort == "added_at" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
-        <th><a href="?sort=size_bytes&dir={% if current_sort == 'size_bytes' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">File Size{% if current_sort == "size_bytes" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
-        <th><a href="?sort=flagged&dir={% if current_sort == 'flagged' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Delete{% if current_sort == "flagged" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
+        <th><a href="?sort=size_bytes&dir={% if current_sort == 'size_bytes' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Size (GB){% if current_sort == "size_bytes" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
+        <th><a href="?sort=tags&dir={% if current_sort == 'tags' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Tags{% if current_sort == "tags" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
       </tr>
     </thead>
     <tbody>
       {% for s in series_list %}
-      <tr>
+      <tr{% if s.flagged %} class="flagged"{% endif %}>
         <td><input type="checkbox" name="series_ids" value="{{ s.id }}" {% if s.flagged %}checked{% endif %}></td>
         <td title="{{ s.file_path }}">{{ s.title }}</td>
         <td>{{ s.year|default_if_none:"" }}</td>
-        <td class="{% if s.imdb_rating == None %}text-muted{% elif s.imdb_rating < IMDB_RATING_THRESHOLD %}text-red{% else %}text-green{% endif %}">{% if s.imdb_id %}<a href="https://www.imdb.com/title/{{ s.imdb_id }}/" target="_blank" style="color: inherit;">{{ s.imdb_rating|default_if_none:"N/A" }}</a>{% else %}{{ s.imdb_rating|default_if_none:"N/A" }}{% endif %}</td>
+        <td class="{% if s.imdb_rating == None %}text-green{% elif s.imdb_rating < IMDB_RATING_THRESHOLD %}text-red{% else %}text-green{% endif %}">{% if s.imdb_id %}<a href="https://www.imdb.com/title/{{ s.imdb_id }}/" target="_blank" style="color: inherit;">{{ s.imdb_rating|default_if_none:"N/A" }}</a>{% else %}{{ s.imdb_rating|default_if_none:"N/A" }}{% endif %}</td>
         <td class="{% if s.any_episode_watched %}text-green{% else %}text-red{% endif %}">{% if s.any_episode_watched %}Yes{% else %}No{% endif %}</td>
-        <td class="{% if s.added_at and s.added_at < AGE_CUTOFF %}text-red{% elif s.added_at %}text-green{% endif %}">{{ s.added_at|date:"Y-m-d"|default_if_none:"" }}</td>
-        <td>{{ s.size_display }}</td>
-        <td class="{% if s.flagged %}delete-yes{% else %}delete-no{% endif %}">{% if s.flagged %}Yes{% else %}No{% endif %}</td>
+        <td class="{% if s.added_at and s.added_at < AGE_CUTOFF %}text-red{% elif s.added_at %}text-green{% endif %}">{{ s.added_at|date:"Y-m"|default_if_none:"" }}</td>
+        <td class="{% if s.size_bytes == 0 %}text-green{% else %}text-red{% endif %}">{{ s.size_display }}</td>
+        <td><small>{% for tag in s.tags_list %}{{ tag }}{% if not forloop.last %}, {% endif %}{% endfor %}</small></td>
       </tr>
       {% endfor %}
     </tbody>

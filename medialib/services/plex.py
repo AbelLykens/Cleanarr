@@ -6,29 +6,33 @@ def _get_server():
     return PlexServer(settings.PLEX_URL, settings.PLEX_TOKEN)
 
 
-def get_all_movies():
+def get_movies_by_path():
+    """Return dict of Plex movies keyed by file path."""
     server = _get_server()
-    results = []
+    result = {}
     for section in server.library.sections():
         if section.type != "movie":
             continue
         for movie in section.all():
             media = movie.media[0] if movie.media else None
             part = media.parts[0] if media and media.parts else None
-            results.append({
-                "title": movie.title,
-                "year": movie.year,
-                "rating_key": movie.ratingKey,
-                "added_at": movie.addedAt,
-                "file_path": part.file if part else "",
-                "size_bytes": part.size if part else 0,
-            })
-    return results
+            file_path = part.file if part else ""
+            if file_path:
+                result[file_path] = {
+                    "title": movie.title,
+                    "year": movie.year,
+                    "rating_key": movie.ratingKey,
+                    "added_at": movie.addedAt,
+                    "file_path": file_path,
+                    "size_bytes": part.size if part else 0,
+                }
+    return result
 
 
-def get_all_series():
+def get_series_by_path():
+    """Return dict of Plex series keyed by first-episode file path."""
     server = _get_server()
-    results = []
+    result = {}
     for section in server.library.sections():
         if section.type != "show":
             continue
@@ -44,13 +48,14 @@ def get_all_series():
                     total_size += part.size or 0
                     if not file_path:
                         file_path = part.file
-            results.append({
-                "title": show.title,
-                "year": show.year,
-                "rating_key": show.ratingKey,
-                "added_at": show.addedAt,
-                "total_episodes": total_episodes,
-                "file_path": file_path,
-                "size_bytes": total_size,
-            })
-    return results
+            if file_path:
+                result[file_path] = {
+                    "title": show.title,
+                    "year": show.year,
+                    "rating_key": show.ratingKey,
+                    "added_at": show.addedAt,
+                    "total_episodes": total_episodes,
+                    "file_path": file_path,
+                    "size_bytes": total_size,
+                }
+    return result

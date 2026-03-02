@@ -8,5 +8,6 @@ def thresholds(request):
     cutoff = timezone.now() - timedelta(days=settings.RECENTLY_ADDED_MONTHS * 30)
     return {
         "IMDB_RATING_THRESHOLD": settings.IMDB_RATING_THRESHOLD,
+        "RECENTLY_ADDED_MONTHS": settings.RECENTLY_ADDED_MONTHS,
         "AGE_CUTOFF": cutoff,
     }

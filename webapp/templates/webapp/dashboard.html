@@ -3,14 +3,14 @@
 {% block content %}
 <h1>Dashboard</h1>
 <div class="cards">
-  <div class="card">
+  <a href="{% url 'movies' %}" class="card" style="text-decoration: none; color: inherit;">
     <h3>Movies</h3>
     <div class="value">{{ movie_count }}</div>
-  </div>
-  <div class="card">
+  </a>
+  <a href="{% url 'series' %}" class="card" style="text-decoration: none; color: inherit;">
     <h3>Series</h3>
     <div class="value">{{ series_count }}</div>
-  </div>
+  </a>
   <div class="card">
     <h3>Flagged Movies</h3>
     <div class="value">{{ flagged_movies }}</div>
@@ -25,7 +25,25 @@
   </div>
 </div>
 
-<div style="margin-top: 2rem; color: #a8b2d1; font-size: 0.85rem;">
+<div style="margin-top: 2rem; background: #16213e; padding: 1.2rem; border-radius: 8px;">
+  <h3 style="margin: 0 0 0.8rem; color: #e94560; font-size: 1rem;">Auto-flag criteria</h3>
+  <p style="color: #a8b2d1; font-size: 0.9rem; margin: 0 0 0.5rem;">
+    An item is flagged for deletion when <strong style="color: #eee;">all</strong> of the following are true:
+  </p>
+  <ul style="color: #a8b2d1; font-size: 0.9rem; margin: 0.3rem 0; padding-left: 1.5rem; line-height: 1.7;">
+    <li><span class="text-red">File size &gt; 0</span> &mdash; item has files on disk (not just in Radarr/Sonarr)</li>
+    <li><span class="text-red">Never watched</span> &mdash; no play history in Tautulli</li>
+    <li><span class="text-red">IMDB rating &lt; {{ IMDB_RATING_THRESHOLD }}</span> &mdash; below the configured threshold</li>
+    <li><span class="text-red">Popularity &le; 10</span> &mdash; not trending (movies only)</li>
+    <li><span class="text-red">Added more than {{ RECENTLY_ADDED_MONTHS }} months ago</span> &mdash; not recently added</li>
+  </ul>
+  <p style="color: #a8b2d1; font-size: 0.85rem; margin: 0.8rem 0 0;">
+    Items with <span class="text-green">unknown ratings (N/A)</span> are never auto-flagged.
+    If any criterion is <span class="text-green">green</span> in the table, that factor alone prevents auto-flagging.
+  </p>
+</div>
+
+<div style="margin-top: 1rem; color: #a8b2d1; font-size: 0.85rem;">
   {% if last_synced %}
   Last synced: {{ last_synced|date:"N j, Y g:i A" }}
   {% else %}

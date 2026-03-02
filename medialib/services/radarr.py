@@ -10,18 +10,30 @@ def _url(path):
     return f"{settings.RADARR_URL.rstrip('/')}/api/v3{path}"
 
 
+def get_all_tags():
+    resp = requests.get(_url("/tag"), headers=_headers(), timeout=30)
+    resp.raise_for_status()
+    return {t["id"]: t["label"] for t in resp.json()}
+
+
 def get_all_movies():
+    tag_map = get_all_tags()
     resp = requests.get(_url("/movie"), headers=_headers(), timeout=30)
     resp.raise_for_status()
     results = {}
     for m in resp.json():
         imdb_id = m.get("imdbId", "")
-        results[imdb_id] = {
+        tag_ids = m.get("tags", [])
+        tags = [tag_map[tid] for tid in tag_ids if tid in tag_map]
+        results[m["id"]] = {
             "radarr_id": m["id"],
             "imdb_id": imdb_id,
             "imdb_rating": (m.get("ratings", {}).get("imdb", {}).get("value")),
             "title": m.get("title", ""),
+            "year": m.get("year"),
+            "popularity": m.get("popularity", 0) or 0,
             "path": m.get("path", ""),
+            "tags": ", ".join(sorted(tags)),
         }
     return results
 

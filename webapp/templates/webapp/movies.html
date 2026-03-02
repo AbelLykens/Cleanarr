@@ -4,6 +4,7 @@
 <h1>Movies</h1>
 
 {% if movies %}
+<p style="font-size: 0.85rem; color: #a8b2d1; margin-bottom: 0.5rem;"><span style="display: inline-block; width: 1em; height: 1em; background: #3d1f1f; border: 1px solid #5c2a2a; vertical-align: middle; margin-right: 0.3rem;"></span> Red background = flagged for deletion</p>
 <form method="post" action="{% url 'confirm_delete' %}">
   {% csrf_token %}
   <table>
@@ -13,23 +14,25 @@
         <th><a href="?sort=title&dir={% if current_sort == 'title' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Title{% if current_sort == "title" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
         <th><a href="?sort=year&dir={% if current_sort == 'year' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Year{% if current_sort == "year" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
         <th><a href="?sort=imdb_rating&dir={% if current_sort == 'imdb_rating' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">IMDB Rating{% if current_sort == "imdb_rating" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
+        <th><a href="?sort=popularity&dir={% if current_sort == 'popularity' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Popularity{% if current_sort == "popularity" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
         <th><a href="?sort=watched&dir={% if current_sort == 'watched' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Ever Watched{% if current_sort == "watched" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
         <th><a href="?sort=added_at&dir={% if current_sort == 'added_at' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Date Added{% if current_sort == "added_at" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
-        <th><a href="?sort=size_bytes&dir={% if current_sort == 'size_bytes' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">File Size{% if current_sort == "size_bytes" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
-        <th><a href="?sort=flagged&dir={% if current_sort == 'flagged' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Delete{% if current_sort == "flagged" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
+        <th><a href="?sort=size_bytes&dir={% if current_sort == 'size_bytes' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Size (GB){% if current_sort == "size_bytes" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
+        <th><a href="?sort=tags&dir={% if current_sort == 'tags' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Tags{% if current_sort == "tags" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
       </tr>
     </thead>
     <tbody>
       {% for movie in movies %}
-      <tr>
+      <tr{% if movie.flagged %} class="flagged"{% endif %}>
         <td><input type="checkbox" name="movie_ids" value="{{ movie.id }}" {% if movie.flagged %}checked{% endif %}></td>
         <td title="{{ movie.file_path }}">{{ movie.title }}</td>
         <td>{{ movie.year|default_if_none:"" }}</td>
-        <td class="{% if movie.imdb_rating == None %}text-muted{% elif movie.imdb_rating < IMDB_RATING_THRESHOLD %}text-red{% else %}text-green{% endif %}">{% if movie.imdb_id %}<a href="https://www.imdb.com/title/{{ movie.imdb_id }}/" target="_blank" style="color: inherit;">{{ movie.imdb_rating|default_if_none:"N/A" }}</a>{% else %}{{ movie.imdb_rating|default_if_none:"N/A" }}{% endif %}</td>
+        <td class="{% if movie.imdb_rating == None %}text-green{% elif movie.imdb_rating < IMDB_RATING_THRESHOLD %}text-red{% else %}text-green{% endif %}">{% if movie.imdb_id %}<a href="https://www.imdb.com/title/{{ movie.imdb_id }}/" target="_blank" style="color: inherit;">{{ movie.imdb_rating|default_if_none:"N/A" }}</a>{% else %}{{ movie.imdb_rating|default_if_none:"N/A" }}{% endif %}</td>
+        <td class="{% if movie.popularity > 10 %}text-green{% else %}text-red{% endif %}">{{ movie.popularity|floatformat:0 }}</td>
         <td class="{% if movie.watched %}text-green{% else %}text-red{% endif %}">{% if movie.watched %}Yes{% else %}No{% endif %}</td>
-        <td class="{% if movie.added_at and movie.added_at < AGE_CUTOFF %}text-red{% elif movie.added_at %}text-green{% endif %}">{{ movie.added_at|date:"Y-m-d"|default_if_none:"" }}</td>
-        <td>{{ movie.size_display }}</td>
-        <td class="{% if movie.flagged %}delete-yes{% else %}delete-no{% endif %}">{% if movie.flagged %}Yes{% else %}No{% endif %}</td>
+        <td class="{% if movie.added_at and movie.added_at < AGE_CUTOFF %}text-red{% elif movie.added_at %}text-green{% endif %}">{{ movie.added_at|date:"Y-m"|default_if_none:"" }}</td>
+        <td class="{% if movie.size_bytes == 0 %}text-green{% else %}text-red{% endif %}">{{ movie.size_display }}</td>
+        <td><small>{% for tag in movie.tags_list %}{{ tag }}{% if not forloop.last %}, {% endif %}{% endfor %}</small></td>
       </tr>
       {% endfor %}
     </tbody>
