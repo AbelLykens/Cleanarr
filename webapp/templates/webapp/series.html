@@ -1,0 +1,64 @@
+{% extends "webapp/base.html" %}
+{% block title %}Series - PlexCleaner{% endblock %}
+{% block content %}
+<h1>Series</h1>
+
+{% if series_list %}
+<form method="post" action="{% url 'confirm_delete' %}">
+  {% csrf_token %}
+  <table>
+    <thead>
+      <tr>
+        <th><input type="checkbox" id="select-all"></th>
+        {% with sorts="title,year,imdb_rating,any_episode_watched,added_at,size_bytes,flagged" %}
+        {% for col in sorts.split %}
+        <th>
+          {% if current_sort == col and current_dir == "asc" %}
+          <a href="?sort={{ col }}&dir=desc">
+          {% else %}
+          <a href="?sort={{ col }}&dir=asc">
+          {% endif %}
+            {% if col == "title" %}Title
+            {% elif col == "year" %}Year
+            {% elif col == "imdb_rating" %}IMDB
+            {% elif col == "any_episode_watched" %}Watched
+            {% elif col == "added_at" %}Added
+            {% elif col == "size_bytes" %}Size
+            {% elif col == "flagged" %}Flagged
+            {% endif %}
+            {% if current_sort == col %}{% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}
+          </a>
+        </th>
+        {% endfor %}
+        {% endwith %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in series_list %}
+      <tr {% if s.flagged %}class="flagged"{% endif %}>
+        <td><input type="checkbox" name="series_ids" value="{{ s.id }}"></td>
+        <td>{{ s.title }}</td>
+        <td>{{ s.year|default_if_none:"" }}</td>
+        <td>{{ s.imdb_rating|default_if_none:"N/A" }}</td>
+        <td>{% if s.any_episode_watched %}Yes{% else %}No{% endif %}</td>
+        <td>{{ s.added_at|date:"Y-m-d"|default_if_none:"" }}</td>
+        <td>{{ s.size_display }}</td>
+        <td>{% if s.flagged %}Yes{% else %}No{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="actions">
+    <button type="submit" class="btn btn-danger">Delete Selected</button>
+  </div>
+</form>
+{% else %}
+<p>No series found. Click "Sync Now" on the dashboard to populate.</p>
+{% endif %}
+
+<script>
+document.getElementById('select-all').addEventListener('change', function() {
+  document.querySelectorAll('input[name="series_ids"]').forEach(cb => cb.checked = this.checked);
+});
+</script>
+{% endblock %}

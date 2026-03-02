@@ -1,0 +1,39 @@
+{% extends "webapp/base.html" %}
+{% block title %}Dashboard - PlexCleaner{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+<div class="cards">
+  <div class="card">
+    <h3>Movies</h3>
+    <div class="value">{{ movie_count }}</div>
+  </div>
+  <div class="card">
+    <h3>Series</h3>
+    <div class="value">{{ series_count }}</div>
+  </div>
+  <div class="card">
+    <h3>Flagged Movies</h3>
+    <div class="value">{{ flagged_movies }}</div>
+  </div>
+  <div class="card">
+    <h3>Flagged Series</h3>
+    <div class="value">{{ flagged_series }}</div>
+  </div>
+  <div class="card">
+    <h3>Reclaimable Space</h3>
+    <div class="value">{{ reclaimable_display }}</div>
+  </div>
+</div>
+
+<div class="actions" style="margin-top: 2rem;">
+  <form method="post" action="{% url 'sync' %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">Sync Now</button>
+  </form>
+  {% if last_synced %}
+  <span style="color: #a8b2d1; font-size: 0.85rem;">Last synced: {{ last_synced|date:"N j, Y g:i A" }}</span>
+  {% else %}
+  <span style="color: #a8b2d1; font-size: 0.85rem;">Never synced</span>
+  {% endif %}
+</div>
+{% endblock %}

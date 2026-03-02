@@ -1,0 +1,65 @@
+{% extends "webapp/base.html" %}
+{% block title %}Confirm Delete - PlexCleaner{% endblock %}
+{% block content %}
+<h1>Confirm Deletion</h1>
+
+{% if movies or series %}
+<p>The following items will be permanently deleted via Sonarr/Radarr (files will be removed from disk):</p>
+
+{% if movies %}
+<h2>Movies ({{ movies|length }})</h2>
+<table>
+  <thead>
+    <tr><th>Title</th><th>Year</th><th>Size</th></tr>
+  </thead>
+  <tbody>
+    {% for movie in movies %}
+    <tr>
+      <td>{{ movie.title }}</td>
+      <td>{{ movie.year|default_if_none:"" }}</td>
+      <td>{{ movie.size_display }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+{% if series %}
+<h2>Series ({{ series|length }})</h2>
+<table>
+  <thead>
+    <tr><th>Title</th><th>Year</th><th>Size</th></tr>
+  </thead>
+  <tbody>
+    {% for s in series %}
+    <tr>
+      <td>{{ s.title }}</td>
+      <td>{{ s.year|default_if_none:"" }}</td>
+      <td>{{ s.size_display }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<p style="margin-top: 1rem; font-size: 1.1rem;"><strong>Total space to be freed: {{ total_size_display }}</strong></p>
+
+<form method="post" action="{% url 'execute_delete' %}">
+  {% csrf_token %}
+  {% for id in movie_ids %}
+  <input type="hidden" name="movie_ids" value="{{ id }}">
+  {% endfor %}
+  {% for id in series_ids %}
+  <input type="hidden" name="series_ids" value="{{ id }}">
+  {% endfor %}
+  <div class="actions">
+    <button type="submit" class="btn btn-danger">Confirm Delete</button>
+    <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
+  </div>
+</form>
+
+{% else %}
+<p>No items selected for deletion.</p>
+<a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+{% endif %}
+{% endblock %}
