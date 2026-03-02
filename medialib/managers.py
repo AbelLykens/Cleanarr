@@ -212,9 +212,12 @@ def sync_library(progress=None):
 
 def delete_movies(movie_ids):
     """Delete movies via Radarr API and remove from local DB."""
-    results = {"deleted": 0, "errors": []}
+    results = {"deleted": 0, "errors": [], "protected": 0}
     movies = Movie.objects.filter(id__in=movie_ids)
     for movie in movies:
+        if movie.protected:
+            results["protected"] += 1
+            continue
         try:
             radarr.delete_movie(movie.radarr_id, delete_files=True)
             DeletionLog.objects.create(
@@ -232,9 +235,12 @@ def delete_movies(movie_ids):
 
 def delete_series(series_ids):
     """Delete series via Sonarr API and remove from local DB."""
-    results = {"deleted": 0, "errors": []}
+    results = {"deleted": 0, "errors": [], "protected": 0}
     all_series = Series.objects.filter(id__in=series_ids)
     for s in all_series:
+        if s.protected:
+            results["protected"] += 1
+            continue
         try:
             sonarr.delete_series(s.sonarr_id, delete_files=True)
             DeletionLog.objects.create(

@@ -10,11 +10,11 @@ from medialib.models import DeletionLog, Movie, Series
 def dashboard(request):
     movie_count = Movie.objects.count()
     series_count = Series.objects.count()
-    flagged_movies = Movie.objects.filter(flagged=True).count()
-    flagged_series = Series.objects.filter(flagged=True).count()
+    flagged_movies = Movie.objects.filter(flagged=True, protected=False).count()
+    flagged_series = Series.objects.filter(flagged=True, protected=False).count()
     reclaimable = (
-        (Movie.objects.filter(flagged=True).aggregate(s=Sum("size_bytes"))["s"] or 0)
-        + (Series.objects.filter(flagged=True).aggregate(s=Sum("size_bytes"))["s"] or 0)
+        (Movie.objects.filter(flagged=True, protected=False).aggregate(s=Sum("size_bytes"))["s"] or 0)
+        + (Series.objects.filter(flagged=True, protected=False).aggregate(s=Sum("size_bytes"))["s"] or 0)
     )
     total_reclaimed = DeletionLog.objects.aggregate(s=Sum("size_bytes"))["s"] or 0
     total_deleted_count = DeletionLog.objects.count()
@@ -108,18 +108,17 @@ def series_list(request):
 def confirm_delete(request):
     movie_ids = request.POST.getlist("movie_ids")
     series_ids = request.POST.getlist("series_ids")
-    selected_movies = Movie.objects.filter(id__in=movie_ids)
-    selected_series = Series.objects.filter(id__in=series_ids)
-    total_size = (
-        (selected_movies.aggregate(s=Sum("size_bytes"))["s"] or 0)
-        + (selected_series.aggregate(s=Sum("size_bytes"))["s"] or 0)
-    )
+    selected_movies = list(Movie.objects.filter(id__in=movie_ids))
+    selected_series = list(Series.objects.filter(id__in=series_ids))
+    has_protected = any(m.protected for m in selected_movies) or any(s.protected for s in selected_series)
+    total_size = sum(m.size_bytes for m in selected_movies if not m.protected) + sum(s.size_bytes for s in selected_series if not s.protected)
     return render(request, "webapp/confirm_delete.html", {
         "movies": selected_movies,
         "series": selected_series,
         "total_size_display": _size_display(total_size),
         "movie_ids": movie_ids,
         "series_ids": series_ids,
+        "has_protected": has_protected,
     })
 
 
@@ -128,23 +127,46 @@ def execute_delete(request):
     movie_ids = request.POST.getlist("movie_ids")
     series_ids = request.POST.getlist("series_ids")
     total_deleted = 0
+    total_protected = 0
     all_errors = []
 
     if movie_ids:
         result = delete_movies([int(i) for i in movie_ids])
         total_deleted += result["deleted"]
+        total_protected += result.get("protected", 0)
         all_errors.extend(result["errors"])
 
     if series_ids:
         result = delete_series([int(i) for i in series_ids])
         total_deleted += result["deleted"]
+        total_protected += result.get("protected", 0)
         all_errors.extend(result["errors"])
 
     messages.success(request, f"Deleted {total_deleted} item(s).")
+    if total_protected:
+        messages.warning(request, f"Skipped {total_protected} protected item(s).")
     for err in all_errors:
         messages.error(request, f"Delete error: {err}")
 
     return redirect("dashboard")
+
+
+@require_POST
+def toggle_protected(request):
+    movie_id = request.POST.get("movie_id")
+    series_id = request.POST.get("series_id")
+    redirect_url = request.POST.get("next", "/")
+    if movie_id:
+        movie = Movie.objects.filter(id=movie_id).first()
+        if movie:
+            movie.protected = not movie.protected
+            movie.save(update_fields=["protected"])
+    if series_id:
+        s = Series.objects.filter(id=series_id).first()
+        if s:
+            s.protected = not s.protected
+            s.save(update_fields=["protected"])
+    return redirect(redirect_url)
 
 
 def _size_display(size_bytes):

@@ -16,6 +16,7 @@ class Movie(models.Model):
     size_bytes = models.BigIntegerField(default=0)
     tags = models.TextField(blank=True, default="")
     flagged = models.BooleanField(default=False)
+    protected = models.BooleanField(default=False)
     last_synced = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -49,6 +50,7 @@ class Series(models.Model):
     size_bytes = models.BigIntegerField(default=0)
     tags = models.TextField(blank=True, default="")
     flagged = models.BooleanField(default=False)
+    protected = models.BooleanField(default=False)
     last_synced = models.DateTimeField(auto_now=True)
 
     class Meta:

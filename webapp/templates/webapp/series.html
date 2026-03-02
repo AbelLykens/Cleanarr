@@ -26,19 +26,21 @@
         <th><a href="?sort=added_at&dir={% if current_sort == 'added_at' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Date Added{% if current_sort == "added_at" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
         <th><a href="?sort=size_bytes&dir={% if current_sort == 'size_bytes' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Size (GB){% if current_sort == "size_bytes" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
         <th><a href="?sort=tags&dir={% if current_sort == 'tags' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Tags{% if current_sort == "tags" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
       {% for s in series_list %}
-      <tr{% if s.flagged %} class="flagged"{% endif %}>
-        <td><input type="checkbox" name="series_ids" value="{{ s.id }}" {% if s.flagged %}checked{% endif %}></td>
-        <td title="{{ s.file_path }}">{{ s.title }}</td>
+      <tr{% if s.flagged and not s.protected %} class="flagged"{% endif %}>
+        <td><input type="checkbox" name="series_ids" value="{{ s.id }}" {% if s.flagged and not s.protected %}checked{% endif %}></td>
+        <td title="{{ s.file_path }}">{{ s.title }}{% if s.protected %} <span class="text-green" title="Protected from deletion">&#128274;</span>{% endif %}</td>
         <td class="{% if s.release_date and s.release_date > RELEASE_CUTOFF %}text-green{% endif %}" title="{% if s.release_date %}Released: {{ s.release_date|date:'Y-m-d' }}{% endif %}">{{ s.year|default_if_none:"" }}</td>
         <td class="{% if s.imdb_rating == None %}text-green{% elif s.imdb_rating < IMDB_RATING_THRESHOLD %}text-red{% else %}text-green{% endif %}">{% if s.imdb_id %}<a href="https://www.imdb.com/title/{{ s.imdb_id }}/" target="_blank" style="color: inherit;">{{ s.imdb_rating|default_if_none:"N/A" }}</a>{% else %}{{ s.imdb_rating|default_if_none:"N/A" }}{% endif %}</td>
         <td class="{% if s.any_episode_watched %}text-green{% else %}text-red{% endif %}">{% if s.any_episode_watched %}Yes{% else %}No{% endif %}</td>
         <td class="{% if s.added_at and s.added_at < AGE_CUTOFF %}text-red{% elif s.added_at %}text-green{% endif %}">{{ s.added_at|date:"Y-m"|default_if_none:"" }}</td>
         <td class="{% if s.size_bytes == 0 %}text-green{% else %}text-red{% endif %}">{{ s.size_display }}</td>
         <td><small>{% for tag in s.tags_list %}{{ tag }}{% if not forloop.last %}, {% endif %}{% endfor %}</small></td>
+        <td><button type="button" onclick="toggleProtect('series_id','{{ s.id }}')" style="background:none;border:none;cursor:pointer;font-size:0.8rem;padding:0;" title="{% if s.protected %}Unprotect{% else %}Protect{% endif %}">{% if s.protected %}<span class="text-green">&#128274;</span>{% else %}<span class="text-muted">&#128275;</span>{% endif %}</button></td>
       </tr>
       {% endfor %}
     </tbody>
@@ -55,5 +57,12 @@
 document.getElementById('select-all').addEventListener('change', function() {
   document.querySelectorAll('input[name="series_ids"]').forEach(cb => cb.checked = this.checked);
 });
+function toggleProtect(field, id) {
+  var form = new FormData();
+  form.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+  form.append(field, id);
+  form.append('next', window.location.href);
+  fetch('{% url "toggle_protected" %}', {method: 'POST', body: form}).then(function() { location.reload(); });
+}
 </script>
 {% endblock %}

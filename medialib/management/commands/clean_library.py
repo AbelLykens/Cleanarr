@@ -30,8 +30,8 @@ class Command(BaseCommand):
         dry_run = options["dry_run"]
         filter_tag = options["filter_tag"]
 
-        movies = Movie.objects.filter(flagged=True)
-        series = Series.objects.filter(flagged=True)
+        movies = Movie.objects.filter(flagged=True, protected=False)
+        series = Series.objects.filter(flagged=True, protected=False)
 
         if filter_tag:
             matches = lambda tags: any(fnmatch(t, filter_tag) for t in tags)

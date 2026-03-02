@@ -8,4 +8,5 @@ urlpatterns = [
     path("series/", views.series_list, name="series"),
     path("delete/", views.confirm_delete, name="confirm_delete"),
     path("delete/execute/", views.execute_delete, name="execute_delete"),
+    path("toggle-protected/", views.toggle_protected, name="toggle_protected"),
 ]

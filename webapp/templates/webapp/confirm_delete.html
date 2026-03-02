@@ -6,6 +6,12 @@
 {% if movies or series %}
 <p>The following items will be permanently deleted via Sonarr/Radarr (files will be removed from disk):</p>
 
+{% if has_protected %}
+<p style="background: #1b3a1b; padding: 0.8rem 1rem; border-radius: 4px; color: #69db7c; font-size: 0.9rem;">
+  &#128274; Some selected items are protected and will not be deleted. Remove them from the selection to proceed.
+</p>
+{% endif %}
+
 {% if movies %}
 <h2>Movies ({{ movies|length }})</h2>
 <table>
@@ -14,8 +20,8 @@
   </thead>
   <tbody>
     {% for movie in movies %}
-    <tr>
-      <td>{{ movie.title }}</td>
+    <tr{% if movie.protected %} style="opacity: 0.5;"{% endif %}>
+      <td>{{ movie.title }}{% if movie.protected %} <span class="text-green">&#128274;</span>{% endif %}</td>
       <td>{{ movie.year|default_if_none:"" }}</td>
       <td>{{ movie.size_display }}</td>
     </tr>
@@ -32,8 +38,8 @@
   </thead>
   <tbody>
     {% for s in series %}
-    <tr>
-      <td>{{ s.title }}</td>
+    <tr{% if s.protected %} style="opacity: 0.5;"{% endif %}>
+      <td>{{ s.title }}{% if s.protected %} <span class="text-green">&#128274;</span>{% endif %}</td>
       <td>{{ s.year|default_if_none:"" }}</td>
       <td>{{ s.size_display }}</td>
     </tr>
@@ -44,19 +50,47 @@
 
 <p style="margin-top: 1rem; font-size: 1.1rem;"><strong>Total space to be freed: {{ total_size_display }}</strong></p>
 
-<form method="post" action="{% url 'execute_delete' %}">
+<form id="delete-form" method="post" action="{% url 'execute_delete' %}">
   {% csrf_token %}
   {% for id in movie_ids %}
-  <input type="hidden" name="movie_ids" value="{{ id }}">
+  <input type="hidden" name="movie_ids" value="{{ id }}" data-protected="{{ id }}">
   {% endfor %}
   {% for id in series_ids %}
-  <input type="hidden" name="series_ids" value="{{ id }}">
+  <input type="hidden" name="series_ids" value="{{ id }}" data-protected="{{ id }}">
   {% endfor %}
   <div class="actions">
-    <button type="submit" class="btn btn-danger">Confirm Delete</button>
+    {% if has_protected %}
+    <button type="button" id="remove-protected" class="btn btn-secondary">Remove protected from selection</button>
+    {% endif %}
+    <button type="submit" class="btn btn-danger" id="confirm-btn" {% if has_protected %}disabled style="opacity: 0.5; cursor: not-allowed;"{% endif %}>Confirm Delete</button>
     <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
   </div>
 </form>
+
+<script>
+{% if has_protected %}
+var protectedMovieIds = [{% for movie in movies %}{% if movie.protected %}{{ movie.id }},{% endif %}{% endfor %}];
+var protectedSeriesIds = [{% for s in series %}{% if s.protected %}{{ s.id }},{% endif %}{% endfor %}];
+
+document.getElementById('remove-protected').addEventListener('click', function() {
+  protectedMovieIds.forEach(function(id) {
+    var el = document.querySelector('input[name="movie_ids"][value="' + id + '"]');
+    if (el) el.remove();
+  });
+  protectedSeriesIds.forEach(function(id) {
+    var el = document.querySelector('input[name="series_ids"][value="' + id + '"]');
+    if (el) el.remove();
+  });
+  document.querySelectorAll('tr[style*="opacity"]').forEach(function(row) { row.remove(); });
+  this.remove();
+  var btn = document.getElementById('confirm-btn');
+  btn.disabled = false;
+  btn.style.opacity = '';
+  btn.style.cursor = '';
+  document.querySelector('p[style*="#1b3a1b"]').remove();
+});
+{% endif %}
+</script>
 
 {% else %}
 <p>No items selected for deletion.</p>
