@@ -10,17 +10,24 @@ from .services import plex, radarr, sonarr, tautulli
 logger = logging.getLogger(__name__)
 
 
+def _make_aware(dt):
+    """Ensure a datetime is timezone-aware (assume UTC if naive)."""
+    if dt is not None and isinstance(dt, datetime) and dt.tzinfo is None:
+        return dt.replace(tzinfo=dt_tz.utc)
+    return dt
+
+
 def _should_flag(watched, imdb_rating, added_at):
     """Return True if item meets all auto-flag criteria."""
     if watched:
         return False
+    if imdb_rating is None:
+        return False
     threshold = settings.IMDB_RATING_THRESHOLD
-    if imdb_rating is not None and imdb_rating >= threshold:
+    if imdb_rating >= threshold:
         return False
     if added_at is None:
         return True
-    if isinstance(added_at, datetime) and added_at.tzinfo is None:
-        added_at = added_at.replace(tzinfo=dt_tz.utc)
     cutoff = timezone.now() - timedelta(days=settings.RECENTLY_ADDED_MONTHS * 30)
     return added_at < cutoff
 
@@ -73,7 +80,8 @@ def sync_library():
         imdb_id = radarr_info["imdb_id"] if radarr_info else None
         radarr_id = radarr_info["radarr_id"] if radarr_info else None
 
-        flagged = _should_flag(watched, imdb_rating, pm.get("added_at"))
+        added_at = _make_aware(pm.get("added_at"))
+        flagged = _should_flag(watched, imdb_rating, added_at)
 
         Movie.objects.update_or_create(
             plex_rating_key=rk,
@@ -83,7 +91,7 @@ def sync_library():
                 "radarr_id": radarr_id,
                 "imdb_id": imdb_id,
                 "imdb_rating": imdb_rating,
-                "added_at": pm.get("added_at"),
+                "added_at": added_at,
                 "watched": watched,
                 "file_path": file_path,
                 "size_bytes": pm.get("size_bytes", 0),
@@ -136,7 +144,8 @@ def sync_library():
         imdb_id = sonarr_info["imdb_id"] if sonarr_info else None
         sonarr_id = sonarr_info["sonarr_id"] if sonarr_info else None
 
-        flagged = _should_flag(watched, imdb_rating, ps.get("added_at"))
+        added_at = _make_aware(ps.get("added_at"))
+        flagged = _should_flag(watched, imdb_rating, added_at)
 
         Series.objects.update_or_create(
             plex_rating_key=rk,
@@ -146,7 +155,7 @@ def sync_library():
                 "sonarr_id": sonarr_id,
                 "imdb_id": imdb_id,
                 "imdb_rating": imdb_rating,
-                "added_at": ps.get("added_at"),
+                "added_at": added_at,
                 "any_episode_watched": watched,
                 "total_episodes": ps.get("total_episodes", 0),
                 "watched_episodes": 0,

@@ -1,5 +1,5 @@
 {% extends "webapp/base.html" %}
-{% block title %}Movies - PlexCleaner{% endblock %}
+{% block title %}Movies - ServarOpruimarr{% endblock %}
 {% block content %}
 <h1>Movies</h1>
 
@@ -23,11 +23,11 @@
       {% for movie in movies %}
       <tr>
         <td><input type="checkbox" name="movie_ids" value="{{ movie.id }}" {% if movie.flagged %}checked{% endif %}></td>
-        <td>{{ movie.title }}</td>
+        <td title="{{ movie.file_path }}">{{ movie.title }}</td>
         <td>{{ movie.year|default_if_none:"" }}</td>
-        <td class="{% if movie.imdb_rating == None %}text-red{% elif movie.imdb_rating < IMDB_RATING_THRESHOLD %}text-red{% else %}text-green{% endif %}">{{ movie.imdb_rating|default_if_none:"N/A" }}</td>
+        <td class="{% if movie.imdb_rating == None %}text-muted{% elif movie.imdb_rating < IMDB_RATING_THRESHOLD %}text-red{% else %}text-green{% endif %}">{% if movie.imdb_id %}<a href="https://www.imdb.com/title/{{ movie.imdb_id }}/" target="_blank" style="color: inherit;">{{ movie.imdb_rating|default_if_none:"N/A" }}</a>{% else %}{{ movie.imdb_rating|default_if_none:"N/A" }}{% endif %}</td>
         <td class="{% if movie.watched %}text-green{% else %}text-red{% endif %}">{% if movie.watched %}Yes{% else %}No{% endif %}</td>
-        <td>{{ movie.added_at|date:"Y-m-d"|default_if_none:"" }}</td>
+        <td class="{% if movie.added_at and movie.added_at < AGE_CUTOFF %}text-red{% elif movie.added_at %}text-green{% endif %}">{{ movie.added_at|date:"Y-m-d"|default_if_none:"" }}</td>
         <td>{{ movie.size_display }}</td>
         <td class="{% if movie.flagged %}delete-yes{% else %}delete-no{% endif %}">{% if movie.flagged %}Yes{% else %}No{% endif %}</td>
       </tr>

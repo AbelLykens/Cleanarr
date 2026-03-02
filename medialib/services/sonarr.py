@@ -19,7 +19,7 @@ def get_all_series():
         results[imdb_id] = {
             "sonarr_id": s["id"],
             "imdb_id": imdb_id,
-            "imdb_rating": (s.get("ratings", {}).get("imdb", {}).get("value")),
+            "imdb_rating": s.get("ratings", {}).get("value"),
             "title": s.get("title", ""),
             "path": s.get("path", ""),
         }
