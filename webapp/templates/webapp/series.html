@@ -3,8 +3,16 @@
 {% block content %}
 <h1>Series</h1>
 
+<div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+  <p style="font-size: 0.85rem; color: #a8b2d1; margin: 0;"><span style="display: inline-block; width: 1em; height: 1em; background: #3d1f1f; border: 1px solid #5c2a2a; vertical-align: middle; margin-right: 0.3rem;"></span> Red background = flagged for deletion</p>
+  <form method="get" style="margin: 0; display: flex; align-items: center; gap: 0.4rem; margin-left: auto;">
+    <input type="text" name="tag" value="{{ tag_filter }}" placeholder="Filter by tag..." style="padding: 0.3rem 0.6rem; background: #16213e; border: 1px solid #2a2a4a; color: #eee; border-radius: 4px; font-size: 0.85rem;">
+    <button type="submit" class="btn btn-secondary" style="padding: 0.3rem 0.8rem; font-size: 0.85rem;">Filter</button>
+    {% if tag_filter %}<a href="{% url 'series' %}" style="color: #a8b2d1; font-size: 0.85rem;">Clear</a>{% endif %}
+  </form>
+</div>
+
 {% if series_list %}
-<p style="font-size: 0.85rem; color: #a8b2d1; margin-bottom: 0.5rem;"><span style="display: inline-block; width: 1em; height: 1em; background: #3d1f1f; border: 1px solid #5c2a2a; vertical-align: middle; margin-right: 0.3rem;"></span> Red background = flagged for deletion</p>
 <form method="post" action="{% url 'confirm_delete' %}">
   {% csrf_token %}
   <table>
@@ -40,7 +48,7 @@
   </div>
 </form>
 {% else %}
-<p>No series found. Sync runs daily at 04:00.</p>
+<p>{% if tag_filter %}No series matching tag "{{ tag_filter }}".{% else %}No series found. Sync runs daily at 04:00.{% endif %}</p>
 {% endif %}
 
 <script>

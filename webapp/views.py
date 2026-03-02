@@ -63,10 +63,14 @@ def movies_list(request):
         order_field = f"-{order_field}"
     ordering = ("-flagged", order_field) if not explicit_sort else (order_field,)
     movies = Movie.objects.all().order_by(*ordering)
+    tag_filter = request.GET.get("tag", "").strip()
+    if tag_filter:
+        movies = movies.filter(tags__icontains=tag_filter)
     return render(request, "webapp/movies.html", {
         "movies": movies,
         "current_sort": sort,
         "current_dir": direction,
+        "tag_filter": tag_filter,
     })
 
 
@@ -89,10 +93,14 @@ def series_list(request):
         order_field = f"-{order_field}"
     ordering = ("-flagged", order_field) if not explicit_sort else (order_field,)
     all_series = Series.objects.all().order_by(*ordering)
+    tag_filter = request.GET.get("tag", "").strip()
+    if tag_filter:
+        all_series = all_series.filter(tags__icontains=tag_filter)
     return render(request, "webapp/series.html", {
         "series_list": all_series,
         "current_sort": sort,
         "current_dir": direction,
+        "tag_filter": tag_filter,
     })
 
 
