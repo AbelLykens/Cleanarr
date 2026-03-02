@@ -59,7 +59,9 @@ Copy `.env.example` to `.env` and fill in your values:
 | `RADARR_API_KEY` | Radarr API key | |
 | `TAUTULLI_URL` | Tautulli URL | `http://localhost:8181` |
 | `TAUTULLI_API_KEY` | Tautulli API key | |
-| `IMDB_RATING_THRESHOLD` | Flag items rated below this | `5.0` |
+| `IMDB_RATING_THRESHOLD` | Flag items rated below this (fallback for both types) | `5.0` |
+| `IMDB_RATING_THRESHOLD_MOVIES` | Flag movies rated below this | value of `IMDB_RATING_THRESHOLD` |
+| `IMDB_RATING_THRESHOLD_SERIES` | Flag series rated below this | value of `IMDB_RATING_THRESHOLD` |
 | `RECENTLY_ADDED_MONTHS` | Protect items added/released within this many months | `6` |
 
 ## Manual sync

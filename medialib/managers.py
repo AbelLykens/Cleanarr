@@ -17,7 +17,7 @@ def _make_aware(dt):
     return dt
 
 
-def _should_flag(watched, imdb_rating, added_at, size_bytes=0, popularity=0, release_date=None):
+def _should_flag(watched, imdb_rating, added_at, size_bytes=0, popularity=0, release_date=None, rating_threshold=None):
     """Return True if item meets all auto-flag criteria."""
     if size_bytes == 0:
         return False
@@ -25,7 +25,7 @@ def _should_flag(watched, imdb_rating, added_at, size_bytes=0, popularity=0, rel
         return False
     if imdb_rating is None:
         return False
-    threshold = settings.IMDB_RATING_THRESHOLD
+    threshold = rating_threshold if rating_threshold is not None else settings.IMDB_RATING_THRESHOLD
     if imdb_rating >= threshold:
         return False
     if popularity > settings.POPULARITY_THRESHOLD:
@@ -100,7 +100,8 @@ def sync_library(progress=None):
         imdb_id = radarr_info.get("imdb_id")
         popularity = radarr_info.get("popularity", 0)
         release_date = radarr_info.get("release_date")
-        flagged = _should_flag(watched, imdb_rating, added_at, size_bytes, popularity, release_date)
+        flagged = _should_flag(watched, imdb_rating, added_at, size_bytes, popularity, release_date,
+                               rating_threshold=settings.IMDB_RATING_THRESHOLD_MOVIES)
 
         collection_obj = None
         coll_tmdb_id = radarr_info.get("collection_tmdb_id")
@@ -188,7 +189,8 @@ def sync_library(progress=None):
         imdb_rating = sonarr_info.get("imdb_rating")
         imdb_id = sonarr_info.get("imdb_id")
         release_date = sonarr_info.get("release_date")
-        flagged = _should_flag(watched, imdb_rating, added_at, size_bytes, release_date=release_date)
+        flagged = _should_flag(watched, imdb_rating, added_at, size_bytes, release_date=release_date,
+                               rating_threshold=settings.IMDB_RATING_THRESHOLD_SERIES)
 
         Series.objects.update_or_create(
             sonarr_id=sid,

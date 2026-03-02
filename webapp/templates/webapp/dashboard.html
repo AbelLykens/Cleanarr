@@ -37,7 +37,7 @@
   <ul style="color: #a8b2d1; font-size: 0.9rem; margin: 0.3rem 0; padding-left: 1.5rem; line-height: 1.7;">
     <li><span class="text-red">File size &gt; 0</span> &mdash; item has files on disk (not just in Radarr/Sonarr)</li>
     <li><span class="text-red">Never watched</span> &mdash; no play history in Tautulli</li>
-    <li><span class="text-red">IMDB rating &lt; {{ IMDB_RATING_THRESHOLD }}</span> &mdash; below the configured threshold</li>
+    <li><span class="text-red">IMDB rating &lt; {{ IMDB_RATING_THRESHOLD_MOVIES }} (movies) / {{ IMDB_RATING_THRESHOLD_SERIES }} (series)</span> &mdash; below the configured threshold</li>
     <li><span class="text-red">Popularity &le; {{ POPULARITY_THRESHOLD|floatformat:0 }}</span> &mdash; not trending (movies only)</li>
     <li><span class="text-red">Added more than {{ RECENTLY_ADDED_MONTHS }} months ago</span> &mdash; not recently added</li>
     <li><span class="text-red">Released more than {{ RECENTLY_ADDED_MONTHS }} months ago</span> &mdash; not a recent release</li>
