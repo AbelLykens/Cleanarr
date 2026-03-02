@@ -187,25 +187,50 @@ def toggle_protected(request):
 
 
 def collections_list(request):
+    explicit_sort = "sort" in request.GET
+    sort = request.GET.get("sort", "name")
+    direction = request.GET.get("dir", "asc")
+    allowed_sorts = {
+        "name": "name",
+        "movie_count": "movie_count",
+        "avg_rating": "avg_rating",
+        "total_size": "total_size",
+    }
+    order_field = allowed_sorts.get(sort, "name")
+    if direction == "desc":
+        order_field = f"-{order_field}"
+
+    flagged_movie_count = Count(
+        "movies",
+        filter=Q(movies__flagged=True, movies__protected=False, protected=False),
+    )
     collections = MovieCollection.objects.prefetch_related("movies").annotate(
         movie_count=Count("movies"),
         avg_rating=Avg("movies__imdb_rating"),
-    ).filter(movie_count__gt=1).order_by("-avg_rating")
+        total_size=Sum("movies__size_bytes"),
+        flagged_count=flagged_movie_count,
+    ).filter(movie_count__gt=1)
+
+    if explicit_sort:
+        collections = collections.order_by(order_field)
+    else:
+        collections = collections.order_by("-flagged_count", order_field)
+
     collection_data = []
     for c in collections:
         movies = c.movies.all()
-        total_size = sum(m.size_bytes for m in movies)
-        has_flagged = not c.protected and any(m.flagged and not m.protected for m in movies)
         collection_data.append({
             "collection": c,
             "movie_count": c.movie_count,
             "avg_rating": round(c.avg_rating, 1) if c.avg_rating is not None else None,
-            "total_size_display": _size_display(total_size),
-            "has_flagged": has_flagged,
+            "total_size_display": _size_display(c.total_size or 0),
+            "has_flagged": c.flagged_count > 0,
             "movies": movies,
         })
     return render(request, "webapp/collections.html", {
         "collection_data": collection_data,
+        "current_sort": sort,
+        "current_dir": direction,
     })
 
 

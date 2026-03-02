@@ -7,10 +7,10 @@
 <table>
   <thead>
     <tr>
-      <th>Collection</th>
-      <th>Movies</th>
-      <th>Avg Rating</th>
-      <th>Total Size</th>
+      <th><a href="?sort=name&dir={% if current_sort == 'name' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Collection{% if current_sort == "name" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
+      <th><a href="?sort=movie_count&dir={% if current_sort == 'movie_count' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Movies{% if current_sort == "movie_count" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
+      <th><a href="?sort=avg_rating&dir={% if current_sort == 'avg_rating' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Avg Rating{% if current_sort == "avg_rating" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
+      <th><a href="?sort=total_size&dir={% if current_sort == 'total_size' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Total Size{% if current_sort == "total_size" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
       <th></th>
     </tr>
   </thead>
