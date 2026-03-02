@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import messages
 from django.db.models import Avg, BooleanField, Case, Count, OuterRef, Q, Subquery, Sum, Value, When
 from django.shortcuts import redirect, render
@@ -5,6 +6,7 @@ from django.views.decorators.http import require_POST
 
 from medialib.managers import delete_movies, delete_series
 from medialib.models import DeletionLog, Movie, MovieCollection, Series
+from medialib.services import seerr
 
 
 def dashboard(request):
@@ -40,6 +42,8 @@ def dashboard(request):
         "total_deleted_count": total_deleted_count,
         "recent_deletions": recent_deletions,
         "last_synced": last_synced,
+        "seerr_configured": seerr.is_configured(),
+        "seerr_blocklist": settings.SEERR_BLOCKLIST_ON_DELETE,
     })
 
 

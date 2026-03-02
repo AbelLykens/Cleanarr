@@ -45,6 +45,7 @@ def get_all_movies():
         collection = m.get("collection") or {}
         results[m["id"]] = {
             "radarr_id": m["id"],
+            "tmdb_id": m.get("tmdbId"),
             "imdb_id": imdb_id,
             "imdb_rating": (m.get("ratings", {}).get("imdb", {}).get("value")),
             "title": m.get("title", ""),

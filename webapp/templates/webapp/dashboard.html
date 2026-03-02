@@ -83,5 +83,12 @@
   Never synced
   {% endif %}
   &mdash; Library syncs automatically every day at 04:00.
+  <br>
+  Seerr integration:
+  {% if seerr_configured %}
+  <span class="text-green">connected</span> &mdash; blocklist on delete: {% if seerr_blocklist %}<span class="text-green">enabled</span>{% else %}<span class="text-red">disabled</span>{% endif %}
+  {% else %}
+  <span style="color: #a8b2d1;">not configured</span>
+  {% endif %}
 </div>
 {% endblock %}

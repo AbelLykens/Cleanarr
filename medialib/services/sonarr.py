@@ -39,6 +39,7 @@ def get_all_series():
         tags = [tag_map[tid] for tid in tag_ids if tid in tag_map]
         results[s["id"]] = {
             "sonarr_id": s["id"],
+            "tmdb_id": s.get("tmdbId"),
             "imdb_id": imdb_id,
             "imdb_rating": s.get("ratings", {}).get("value"),
             "title": s.get("title", ""),

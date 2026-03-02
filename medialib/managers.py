@@ -5,7 +5,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from .models import DeletionLog, Movie, MovieCollection, Series
-from .services import plex, radarr, sonarr, tautulli
+from .services import plex, radarr, seerr, sonarr, tautulli
 
 logger = logging.getLogger(__name__)
 
@@ -117,6 +117,7 @@ def sync_library(progress=None):
             defaults={
                 "title": radarr_info.get("title", ""),
                 "year": radarr_info.get("year"),
+                "tmdb_id": radarr_info.get("tmdb_id"),
                 "release_date": release_date,
                 "plex_rating_key": rating_key,
                 "imdb_id": imdb_id,
@@ -197,6 +198,7 @@ def sync_library(progress=None):
             defaults={
                 "title": sonarr_info.get("title", ""),
                 "year": sonarr_info.get("year"),
+                "tmdb_id": sonarr_info.get("tmdb_id"),
                 "release_date": release_date,
                 "plex_rating_key": rating_key,
                 "imdb_id": imdb_id,
@@ -238,6 +240,7 @@ def delete_movies(movie_ids):
                 media_type=DeletionLog.MOVIE,
                 size_bytes=movie.size_bytes,
             )
+            seerr.notify_deletion(movie.tmdb_id, movie.title, "movie")
             movie.delete()
             results["deleted"] += 1
         except Exception as e:
@@ -261,6 +264,7 @@ def delete_series(series_ids):
                 media_type=DeletionLog.SERIES,
                 size_bytes=s.size_bytes,
             )
+            seerr.notify_deletion(s.tmdb_id, s.title, "tv")
             s.delete()
             results["deleted"] += 1
         except Exception as e:

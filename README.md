@@ -63,6 +63,9 @@ Copy `.env.example` to `.env` and fill in your values:
 | `IMDB_RATING_THRESHOLD_MOVIES` | Flag movies rated below this | value of `IMDB_RATING_THRESHOLD` |
 | `IMDB_RATING_THRESHOLD_SERIES` | Flag series rated below this | value of `IMDB_RATING_THRESHOLD` |
 | `RECENTLY_ADDED_MONTHS` | Protect items added/released within this many months | `6` |
+| `SEERR_URL` | Jellyseerr/Overseerr URL (leave empty to disable) | *(empty)* |
+| `SEERR_API_KEY` | Seerr API key | *(empty)* |
+| `SEERR_BLOCKLIST_ON_DELETE` | Blocklist deleted items in Seerr to prevent re-requests | `True` |
 
 ## Manual sync
 
