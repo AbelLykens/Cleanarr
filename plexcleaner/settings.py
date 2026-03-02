@@ -44,6 +44,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "webapp.context_processors.thresholds",
             ],
         },
     },
@@ -71,7 +72,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Trust X-Forwarded headers from upstream reverse proxy
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if os.getenv("CSRF_TRUSTED_ORIGINS") else []
+CSRF_TRUSTED_ORIGINS = ["https://cln.servar.nl"]
 
 # PlexCleaner config
 PLEX_URL = os.getenv("PLEX_URL", "http://localhost:32400")

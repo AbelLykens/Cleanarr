@@ -10,40 +10,26 @@
     <thead>
       <tr>
         <th><input type="checkbox" id="select-all"></th>
-        {% with sorts="title,year,imdb_rating,watched,added_at,size_bytes,flagged" %}
-        {% for col in sorts.split %}
-        <th>
-          {% if current_sort == col and current_dir == "asc" %}
-          <a href="?sort={{ col }}&dir=desc">
-          {% else %}
-          <a href="?sort={{ col }}&dir=asc">
-          {% endif %}
-            {% if col == "title" %}Title
-            {% elif col == "year" %}Year
-            {% elif col == "imdb_rating" %}IMDB
-            {% elif col == "watched" %}Watched
-            {% elif col == "added_at" %}Added
-            {% elif col == "size_bytes" %}Size
-            {% elif col == "flagged" %}Flagged
-            {% endif %}
-            {% if current_sort == col %}{% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}
-          </a>
-        </th>
-        {% endfor %}
-        {% endwith %}
+        <th><a href="?sort=title&dir={% if current_sort == 'title' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Title{% if current_sort == "title" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
+        <th><a href="?sort=year&dir={% if current_sort == 'year' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Year{% if current_sort == "year" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
+        <th><a href="?sort=imdb_rating&dir={% if current_sort == 'imdb_rating' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">IMDB Rating{% if current_sort == "imdb_rating" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
+        <th><a href="?sort=watched&dir={% if current_sort == 'watched' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Ever Watched{% if current_sort == "watched" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
+        <th><a href="?sort=added_at&dir={% if current_sort == 'added_at' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Date Added{% if current_sort == "added_at" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
+        <th><a href="?sort=size_bytes&dir={% if current_sort == 'size_bytes' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">File Size{% if current_sort == "size_bytes" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
+        <th><a href="?sort=flagged&dir={% if current_sort == 'flagged' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">Delete{% if current_sort == "flagged" %} {% if current_dir == "asc" %}&#9650;{% else %}&#9660;{% endif %}{% endif %}</a></th>
       </tr>
     </thead>
     <tbody>
       {% for movie in movies %}
-      <tr {% if movie.flagged %}class="flagged"{% endif %}>
-        <td><input type="checkbox" name="movie_ids" value="{{ movie.id }}"></td>
+      <tr>
+        <td><input type="checkbox" name="movie_ids" value="{{ movie.id }}" {% if movie.flagged %}checked{% endif %}></td>
         <td>{{ movie.title }}</td>
         <td>{{ movie.year|default_if_none:"" }}</td>
-        <td>{{ movie.imdb_rating|default_if_none:"N/A" }}</td>
-        <td>{% if movie.watched %}Yes{% else %}No{% endif %}</td>
+        <td class="{% if movie.imdb_rating == None %}text-red{% elif movie.imdb_rating < IMDB_RATING_THRESHOLD %}text-red{% else %}text-green{% endif %}">{{ movie.imdb_rating|default_if_none:"N/A" }}</td>
+        <td class="{% if movie.watched %}text-green{% else %}text-red{% endif %}">{% if movie.watched %}Yes{% else %}No{% endif %}</td>
         <td>{{ movie.added_at|date:"Y-m-d"|default_if_none:"" }}</td>
         <td>{{ movie.size_display }}</td>
-        <td>{% if movie.flagged %}Yes{% else %}No{% endif %}</td>
+        <td class="{% if movie.flagged %}delete-yes{% else %}delete-no{% endif %}">{% if movie.flagged %}Yes{% else %}No{% endif %}</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -53,7 +39,7 @@
   </div>
 </form>
 {% else %}
-<p>No movies found. Click "Sync Now" on the dashboard to populate.</p>
+<p>No movies found. Sync runs daily at 04:00.</p>
 {% endif %}
 
 <script>

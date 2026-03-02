@@ -3,7 +3,7 @@ from django.db.models import Sum
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
-from medialib.managers import delete_movies, delete_series, sync_library
+from medialib.managers import delete_movies, delete_series
 from medialib.models import Movie, Series
 
 
@@ -35,18 +35,6 @@ def dashboard(request):
     })
 
 
-@require_POST
-def sync(request):
-    stats = sync_library()
-    messages.success(
-        request,
-        f"Synced {stats['movies_synced']} movies and {stats['series_synced']} series.",
-    )
-    if stats["errors"]:
-        for err in stats["errors"]:
-            messages.warning(request, f"Sync warning: {err}")
-    return redirect("dashboard")
-
 
 def movies_list(request):
     sort = request.GET.get("sort", "title")
@@ -63,7 +51,7 @@ def movies_list(request):
     order_field = allowed_sorts.get(sort, "title")
     if direction == "desc":
         order_field = f"-{order_field}"
-    movies = Movie.objects.all().order_by(order_field)
+    movies = Movie.objects.all().order_by("-flagged", order_field)
     return render(request, "webapp/movies.html", {
         "movies": movies,
         "current_sort": sort,
@@ -86,7 +74,7 @@ def series_list(request):
     order_field = allowed_sorts.get(sort, "title")
     if direction == "desc":
         order_field = f"-{order_field}"
-    all_series = Series.objects.all().order_by(order_field)
+    all_series = Series.objects.all().order_by("-flagged", order_field)
     return render(request, "webapp/series.html", {
         "series_list": all_series,
         "current_sort": sort,

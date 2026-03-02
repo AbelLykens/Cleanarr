@@ -1,5 +1,5 @@
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone as dt_tz
 
 from django.conf import settings
 from django.utils import timezone
@@ -19,6 +19,8 @@ def _should_flag(watched, imdb_rating, added_at):
         return False
     if added_at is None:
         return True
+    if isinstance(added_at, datetime) and added_at.tzinfo is None:
+        added_at = added_at.replace(tzinfo=dt_tz.utc)
     cutoff = timezone.now() - timedelta(days=settings.RECENTLY_ADDED_MONTHS * 30)
     return added_at < cutoff
 
